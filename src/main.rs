@@ -1,16 +1,14 @@
 use std::env;
 use std::fs::File;
-use std::io::Read;
-use std::io::Write;
-use std::str;
+use std::io::{self, BufRead, Write};
+
 
 fn main() {
     let args: Vec<String> = env::args().collect();
-    println!("{}", args.len());
     if args.len() > 2 {
         print!("Usage: rlox [script]");
     } else if args.len() == 2 {
-        run_file(&args[0]);
+        run_file(&args[1]);
     } else {
         run_prompt();
     }
@@ -18,10 +16,11 @@ fn main() {
 }
 
 fn run_file(path: &String) {
-    let mut file_content = Vec::new();
-    let mut file = File::open(&path).expect("Unable to open file");
-    file.read_to_end(&mut file_content).expect("Unable to read");
-    run(&file_content);
+    let file = File::open(&path).expect("Unable to open file");
+    let lines = io::BufReader::new(&file).lines();
+    for (i, line) in lines.enumerate() {
+        run(i+1, &line.unwrap());
+    }
 }
 
 fn run_prompt() {
@@ -32,15 +31,20 @@ fn run_prompt() {
         std::io::stdin().read_line(&mut line).expect("Error: Could not read a line");
         line = line.trim().to_string();
         if line.is_empty() { break; }
-        run(&line.as_bytes().to_vec());
+        run(0, &line);
     }
 }
 
-fn run(source: &Vec<u8>) {
+fn run(idx: usize, source: &String) {
     // let scanner = Scanner { source };
-    let s = match str::from_utf8(source) {
-        Ok(v) => v,
-        Err(e) => panic!("Invalid UTF-8 sequence: {}", e),
-    };
-    println!("result: {}\n", s);
+    println!("result: {}\n", source);
+    error(idx, source);
+}
+
+fn error(line: usize, message: &String) {
+    report(line, "".to_string(), &message);
+}
+
+fn report(line: usize, location: String, message: &String) {
+    println!("[line: {}] Error: {} : {}", line, location, message);
 }
