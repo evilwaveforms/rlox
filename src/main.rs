@@ -1,6 +1,7 @@
 use std::env;
 use std::fs::File;
 use std::io::{self, BufRead, Write};
+pub mod scanner;
 
 
 fn main() {
@@ -45,6 +46,6 @@ fn error(line: usize, message: &String) {
     report(line, "".to_string(), &message);
 }
 
-fn report(line: usize, location: String, message: &String) {
-    println!("[line: {}] Error: {} : {}", line, location, message);
+fn report(line: usize, position: String, message: &String) {
+    println!("[line: {}] Error: {} : {}", line, position, message);
 }
