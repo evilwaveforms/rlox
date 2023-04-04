@@ -37,7 +37,13 @@ fn run_prompt() {
 }
 
 fn run(idx: usize, source: &String) {
-    // let scanner = Scanner { source };
+    let v: Vec<scanner::Token>;
+    let scanner = scanner::Scanner {
+        source,
+        list: v,
+        current: 0
+    };
+    scanner.scan_tokens();
     println!("result: {}\n", source);
     error(idx, source);
 }
