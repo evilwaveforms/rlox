@@ -17,17 +17,24 @@ pub enum TokenType {
     Eof,
 }
 
+pub enum Literal {
+    Identifier(String),
+    Str(String),
+    Number(f64),
+}
+
 pub struct Token {
     lexeme: String,
     line: usize,
-    literal: String,
+    literal: Option<Literal>,
     ttype: TokenType,
 }
 
-pub struct Scanner<'a> {
-    pub source: &'a String,
+pub struct Scanner {
+    pub source: Vec<u8>,
     pub list: Vec<Token>,
     pub current: usize,
+    pub start: usize,
 }
 
 impl fmt::Display for TokenType {
@@ -37,30 +44,36 @@ impl fmt::Display for TokenType {
 
 }
 
+impl fmt::Display for Literal {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}", self.to_string())
+    }
+}
+
 impl fmt::Display for Token {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{} {} {}", self.ttype, self.lexeme, self.literal)
+        write!(f, "{} {} {}", self.ttype, self.lexeme, self.literal.as_ref().unwrap().to_string())
     }
 }
 
 
-impl Scanner<'_> {
+impl Scanner {
     pub fn scan_tokens(&self) {
         // for token in tokens.iter() {
-        while self.current < self.source.chars().count() {
+        while self.current < self.source.len() {
 
         }
     }
 
     fn is_at_end(&self) -> bool {
-        return true;
+        true
     }
 
     fn advance(&mut self) -> char{
         self.current+=1;
-        // NOTE: Refactor, horrible.. horrible..
         // https://doc.rust-lang.org/book/ch08-02-strings.html#indexing-into-strings
-        return self.source.chars().nth(self.current - 1).unwrap();
+        // return self.source.chars().nth(self.current - 1).unwrap();
+        char::from(self.source[self.current - 1])
     }
 
     fn scan_token(&mut self) {
@@ -80,12 +93,11 @@ impl Scanner<'_> {
         };
     }
 
-    // fn make_token(&self, ttype: TokenType, literal: String) {
-    // }
-    //
+     fn make_token(&self, ttype: TokenType, literal: u8) {
+     }
+    
     fn add_token(&self, ttype: TokenType) {
-        // let literal = String::from("");
-        // self.make_token(ttype, literal);
+        self.make_token(ttype, 0);
     }
 
     }

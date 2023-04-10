@@ -20,7 +20,7 @@ fn run_file(path: &String) {
     let file = File::open(&path).expect("Unable to open file");
     let lines = io::BufReader::new(&file).lines();
     for (i, line) in lines.enumerate() {
-        run(i+1, &line.unwrap());
+        run(i+1, line.unwrap().into_bytes());
     }
 }
 
@@ -32,26 +32,29 @@ fn run_prompt() {
         std::io::stdin().read_line(&mut line).expect("Error: Could not read a line");
         line = line.trim().to_string();
         if line.is_empty() { break; }
-        run(0, &line);
+        run(0, line.into_bytes());
     }
 }
 
-fn run(idx: usize, source: &String) {
-    let v: Vec<scanner::Token>;
-    let scanner = scanner::Scanner {
-        source,
-        list: v,
-        current: 0
-    };
-    scanner.scan_tokens();
-    println!("result: {}\n", source);
-    error(idx, source);
+fn run(idx: usize, source: Vec<u8>) {
+    // let v: Vec<scanner::Token>;
+    // let scanner = scanner::Scanner {
+    //     source,
+    //     list: v,
+    //     current: 0,
+    //     start: 0,
+    // };
+    // scanner.scan_tokens();
+    // println!("result: {:?}\n", source);
+    let as_string = std::str::from_utf8(&source).unwrap();
+    println!("{}", as_string);
+    error(idx, as_string);
 }
 
-fn error(line: usize, message: &String) {
-    report(line, "".to_string(), &message);
+fn error(line: usize, message: &str) {
+    report(line, "".to_string(), message);
 }
 
-fn report(line: usize, position: String, message: &String) {
+fn report(line: usize, position: String, message: &str) {
     println!("[line: {}] Error: {} : {}", line, position, message);
 }
