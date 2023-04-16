@@ -37,24 +37,15 @@ fn run_prompt() {
 }
 
 fn run(idx: usize, source: Vec<u8>) {
-    // let v: Vec<scanner::Token>;
-    // let scanner = scanner::Scanner {
-    //     source,
-    //     list: v,
-    //     current: 0,
-    //     start: 0,
-    // };
-    // scanner.scan_tokens();
-    // println!("result: {:?}\n", source);
-    let as_string = std::str::from_utf8(&source).unwrap();
-    println!("{}", as_string);
-    error(idx, as_string);
+    let v: Vec<scanner::Token> = vec![];
+    let mut scanner = scanner::Scanner {
+        source,
+        list: v,
+        current: 0,
+        start: 0,
+        line: idx,
+    };
+    scanner.scan_tokens();
 }
 
-fn error(line: usize, message: &str) {
-    report(line, "".to_string(), message);
-}
 
-fn report(line: usize, position: String, message: &str) {
-    println!("[line: {}] Error: {} : {}", line, position, message);
-}

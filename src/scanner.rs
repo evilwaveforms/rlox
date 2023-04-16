@@ -1,4 +1,5 @@
 use std::fmt;
+use std::str;
 
 pub enum TokenType {
     LeftParen, RightParen, LeftBrace, RightBrace,
@@ -24,7 +25,7 @@ pub enum Literal {
 }
 
 pub struct Token {
-    lexeme: String,
+    pub lexeme: String,
     line: usize,
     literal: Option<Literal>,
     ttype: TokenType,
@@ -35,6 +36,7 @@ pub struct Scanner {
     pub list: Vec<Token>,
     pub current: usize,
     pub start: usize,
+    pub line: usize,
 }
 
 impl fmt::Display for TokenType {
@@ -58,21 +60,19 @@ impl fmt::Display for Token {
 
 
 impl Scanner {
-    pub fn scan_tokens(&self) {
-        // for token in tokens.iter() {
-        while self.current < self.source.len() {
-
+    pub fn scan_tokens(&mut self) {
+        while !self.is_at_end() {
+            self.start = self.current;
+            self.scan_token();
         }
     }
 
     fn is_at_end(&self) -> bool {
-        true
+        return self.current >= self.source.len();
     }
 
-    fn advance(&mut self) -> char{
+    fn advance(&mut self) -> char {
         self.current+=1;
-        // https://doc.rust-lang.org/book/ch08-02-strings.html#indexing-into-strings
-        // return self.source.chars().nth(self.current - 1).unwrap();
         char::from(self.source[self.current - 1])
     }
 
@@ -89,15 +89,33 @@ impl Scanner {
             '+' => self.add_token(TokenType::Plus),
             ';' => self.add_token(TokenType::Semicolon),
             '*' => self.add_token(TokenType::Star),
-            _ => unreachable!()
+            _ => error(self.line, "Unexpected character."),
         };
     }
 
-     fn make_token(&self, ttype: TokenType, literal: u8) {
+     fn make_token(&mut self, ttype: TokenType, literal: Literal) {
+         let text = &self.source[self.start..self.current];
+         let t = Token {
+             lexeme: str::from_utf8(text).unwrap().to_string(),
+             line: self.line,
+             literal: Some(literal),
+             ttype,
+         };
+         println!("{} is the lexeme", t.lexeme);
+         return self.list.push(t);
      }
     
-    fn add_token(&self, ttype: TokenType) {
-        self.make_token(ttype, 0);
+    fn add_token(&mut self, ttype: TokenType) {
+        let l = Literal::Str(String::from("test"));
+        self.make_token(ttype, l);
     }
 
-    }
+}
+
+fn error(line: usize, message: &str) {
+    report(line, "".to_string(), message);
+}
+
+fn report(line: usize, position: String, message: &str) {
+    println!("[line: {}] Error: {} : {}", line, position, message);
+}
