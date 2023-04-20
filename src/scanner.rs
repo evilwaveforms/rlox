@@ -76,6 +76,18 @@ impl Scanner {
         char::from(self.source[self.current - 1])
     }
 
+    fn match_token(&mut self, expected: char) -> bool {
+        if self.is_at_end() { return false };
+        if char::from(self.source[self.current]) != expected { return false };
+        self.current+=1;
+        true
+    }
+
+    fn peek(&mut self) -> char {
+        if self.is_at_end() {return '\0'};
+        char::from(self.source[self.current])
+    }
+
     fn scan_token(&mut self) {
         let c : char = self.advance();
         match c {
@@ -89,6 +101,30 @@ impl Scanner {
             '+' => self.add_token(TokenType::Plus),
             ';' => self.add_token(TokenType::Semicolon),
             '*' => self.add_token(TokenType::Star),
+            '!' => match self.match_token('=') {
+                true => self.add_token(TokenType::BangEqual),
+                false => self.add_token(TokenType::Bang),
+            },
+            '=' => match self.match_token('=') {
+                true => self.add_token(TokenType::EqualEqual),
+                false => self.add_token(TokenType::Equal),
+            },
+            '<' => match self.match_token('=') {
+                true => self.add_token(TokenType::LessEqual),
+                false => self.add_token(TokenType::Less),
+            },
+            '>' => match self.match_token('=') {
+                true => self.add_token(TokenType::GreaterEqual),
+                false => self.add_token(TokenType::Greater),
+            },
+            '/' => match self.match_token('/') {
+                true => while self.peek() != '\n' && !self.is_at_end() {
+                    self.advance();
+                },
+                false => self.add_token(TokenType::Slash),
+            },
+            ' ' | '\r' | '\t' => {},
+            '\n' => { self.line+=1 },
             _ => error(self.line, "Unexpected character."),
         };
     }
