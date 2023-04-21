@@ -1,6 +1,7 @@
 use std::fmt;
 use std::str;
 
+#[rustfmt::skip]
 pub enum TokenType {
     LeftParen, RightParen, LeftBrace, RightBrace,
     Comma, Dot, Minus, Plus, Semicolon, Slash, Star,
@@ -43,7 +44,6 @@ impl fmt::Display for TokenType {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "{}", self)
     }
-
 }
 
 impl fmt::Display for Literal {
@@ -54,10 +54,15 @@ impl fmt::Display for Literal {
 
 impl fmt::Display for Token {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{} {} {}", self.ttype, self.lexeme, self.literal.as_ref().unwrap().to_string())
+        write!(
+            f,
+            "{} {} {}",
+            self.ttype,
+            self.lexeme,
+            self.literal.as_ref().unwrap().to_string()
+        )
     }
 }
-
 
 impl Scanner {
     pub fn scan_tokens(&mut self) {
@@ -72,24 +77,30 @@ impl Scanner {
     }
 
     fn advance(&mut self) -> char {
-        self.current+=1;
+        self.current += 1;
         char::from(self.source[self.current - 1])
     }
 
     fn match_token(&mut self, expected: char) -> bool {
-        if self.is_at_end() { return false };
-        if char::from(self.source[self.current]) != expected { return false };
-        self.current+=1;
+        if self.is_at_end() {
+            return false;
+        };
+        if char::from(self.source[self.current]) != expected {
+            return false;
+        };
+        self.current += 1;
         true
     }
 
     fn peek(&mut self) -> char {
-        if self.is_at_end() {return '\0'};
+        if self.is_at_end() {
+            return '\0';
+        };
         char::from(self.source[self.current])
     }
 
     fn scan_token(&mut self) {
-        let c : char = self.advance();
+        let c: char = self.advance();
         match c {
             '(' => self.add_token(TokenType::LeftParen),
             ')' => self.add_token(TokenType::RightParen),
@@ -118,34 +129,35 @@ impl Scanner {
                 false => self.add_token(TokenType::Greater),
             },
             '/' => match self.match_token('/') {
-                true => while self.peek() != '\n' && !self.is_at_end() {
-                    self.advance();
-                },
+                true => {
+                    while self.peek() != '\n' && !self.is_at_end() {
+                        self.advance();
+                    }
+                }
                 false => self.add_token(TokenType::Slash),
             },
-            ' ' | '\r' | '\t' => {},
-            '\n' => { self.line+=1 },
+            ' ' | '\r' | '\t' => {}
+            '\n' => self.line += 1,
             _ => error(self.line, "Unexpected character."),
         };
     }
 
-     fn make_token(&mut self, ttype: TokenType, literal: Literal) {
-         let text = &self.source[self.start..self.current];
-         let t = Token {
-             lexeme: str::from_utf8(text).unwrap().to_string(),
-             line: self.line,
-             literal: Some(literal),
-             ttype,
-         };
-         println!("{} is the lexeme", t.lexeme);
-         return self.list.push(t);
-     }
-    
+    fn make_token(&mut self, ttype: TokenType, literal: Literal) {
+        let text = &self.source[self.start..self.current];
+        let t = Token {
+            lexeme: str::from_utf8(text).unwrap().to_string(),
+            line: self.line,
+            literal: Some(literal),
+            ttype,
+        };
+        println!("{} is the lexeme", t.lexeme);
+        return self.list.push(t);
+    }
+
     fn add_token(&mut self, ttype: TokenType) {
         let l = Literal::Str(String::from("test"));
         self.make_token(ttype, l);
     }
-
 }
 
 fn error(line: usize, message: &str) {
