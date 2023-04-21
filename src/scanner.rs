@@ -99,6 +99,51 @@ impl Scanner {
         char::from(self.source[self.current])
     }
 
+    fn peek_next(&self) -> char {
+        if self.current + 1 >= self.source.len() {
+            return '\0';
+        }
+        return char::from(self.source[self.current + 1]);
+    }
+
+    fn string(&mut self) {
+        while self.peek() != '"' && !self.is_at_end() {
+            if self.peek() == '\n' {
+                self.line += 1;
+            }
+            self.advance();
+        }
+        if self.is_at_end() {
+            error(self.line, "Unterminated string.");
+            return;
+        }
+        self.advance();
+
+        let text = &self.source[self.start + 1..self.current - 1];
+        let value = str::from_utf8(text).unwrap().to_string();
+        self.make_token(TokenType::String, Literal::Str(value));
+    }
+
+    fn number(&mut self) {
+        while is_digit(self.peek()) {
+            self.advance();
+        }
+
+        if self.peek() == '.' && is_digit(self.peek_next()) {
+            self.advance();
+
+            while is_digit(self.peek()) {
+                self.advance();
+            }
+        }
+
+        let text = &self.source[self.start..self.current];
+        // FIXME:
+        let value = Literal::Number(f64::from_be_bytes(text.try_into().unwrap()));
+        print!("{}", value);
+        self.make_token(TokenType::Number, value)
+    }
+
     fn scan_token(&mut self) {
         let c: char = self.advance();
         match c {
@@ -138,7 +183,14 @@ impl Scanner {
             },
             ' ' | '\r' | '\t' => {}
             '\n' => self.line += 1,
-            _ => error(self.line, "Unexpected character."),
+            '"' => self.string(),
+            c => {
+                if is_digit(c) {
+                    self.number();
+                } else {
+                    error(self.line, "Unexpected character.");
+                }
+            }
         };
     }
 
@@ -166,4 +218,8 @@ fn error(line: usize, message: &str) {
 
 fn report(line: usize, position: String, message: &str) {
     println!("[line: {}] Error: {} : {}", line, position, message);
+}
+
+fn is_digit(c: char) -> bool {
+    return c >= '0' && c <= '9';
 }
