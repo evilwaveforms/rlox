@@ -1,1 +1,5 @@
 # rlox
+
+Crafting interpreters
+
+WIP
