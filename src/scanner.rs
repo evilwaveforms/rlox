@@ -2,6 +2,7 @@ use std::fmt;
 use std::str;
 
 #[rustfmt::skip]
+#[derive(Debug)]
 pub enum TokenType {
     LeftParen, RightParen, LeftBrace, RightBrace,
     Comma, Dot, Minus, Plus, Semicolon, Slash, Star,
@@ -19,12 +20,14 @@ pub enum TokenType {
     Eof,
 }
 
+#[derive(Debug)]
 pub enum Literal {
     Identifier(String),
     Str(String),
     Number(f64),
 }
 
+#[derive(Debug)]
 pub struct Token {
     pub lexeme: String,
     line: usize,
@@ -42,7 +45,7 @@ pub struct Scanner {
 
 impl fmt::Display for TokenType {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}", self)
+        write!(f, "{}", self.to_string())
     }
 }
 
@@ -138,9 +141,13 @@ impl Scanner {
         }
 
         let text = &self.source[self.start..self.current];
-        // FIXME:
-        let value = Literal::Number(f64::from_be_bytes(text.try_into().unwrap()));
-        print!("{}", value);
+        let value = Literal::Number(
+            str::from_utf8(text)
+                .unwrap()
+                .to_string()
+                .parse::<f64>()
+                .unwrap(),
+        );
         self.make_token(TokenType::Number, value)
     }
 
@@ -202,7 +209,9 @@ impl Scanner {
             literal: Some(literal),
             ttype,
         };
-        println!("{} is the lexeme", t.lexeme);
+        println!("Lexeme: {:?}", t.lexeme);
+        println!("Token type: {:?}", t.ttype);
+        println!("Literal: {:?}", t.literal);
         return self.list.push(t);
     }
 
