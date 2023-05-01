@@ -152,7 +152,7 @@ impl Scanner {
     }
 
     fn identifier(&mut self) {
-        while is_alphanumberic(self.peek()) {
+        while is_alphanumeric(self.peek()) {
             self.advance();
         }
         let text = &self.source[self.start..self.current];
@@ -272,6 +272,6 @@ fn is_alpha(c: char) -> bool {
     return c >= 'a' && c <= 'z' || c >= 'A' && c <= 'Z' || c == '_';
 }
 
-fn is_alphanumberic(c: char) -> bool {
+fn is_alphanumeric(c: char) -> bool {
     return is_alpha(c) || is_digit(c);
 }
