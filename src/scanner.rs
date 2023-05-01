@@ -151,6 +151,39 @@ impl Scanner {
         self.make_token(TokenType::Number, value)
     }
 
+    fn identifier(&mut self) {
+        while is_alphanumberic(self.peek()) {
+            self.advance();
+        }
+        let text = &self.source[self.start..self.current];
+        let text_str = str::from_utf8(text).unwrap().to_string();
+        self.keyword_or_identifier(&text_str);
+    }
+
+    fn keyword_or_identifier(&mut self, s: &str) {
+        match s {
+            "and" => self.add_token(TokenType::And),
+            "class" => self.add_token(TokenType::Class),
+            "else" => self.add_token(TokenType::Else),
+            "false" => self.add_token(TokenType::False),
+            "for" => self.add_token(TokenType::For),
+            "fun" => self.add_token(TokenType::Fun),
+            "if" => self.add_token(TokenType::If),
+            "nil" => self.add_token(TokenType::Nil),
+            "or" => self.add_token(TokenType::Or),
+            "print" => self.add_token(TokenType::Print),
+            "return" => self.add_token(TokenType::Return),
+            "super" => self.add_token(TokenType::Super),
+            "this" => self.add_token(TokenType::This),
+            "true" => self.add_token(TokenType::True),
+            "var" => self.add_token(TokenType::Var),
+            "while" => self.add_token(TokenType::While),
+            _ => {
+                self.add_token(TokenType::Identifier);
+            }
+        }
+    }
+
     fn scan_token(&mut self) {
         let c: char = self.advance();
         match c {
@@ -194,6 +227,8 @@ impl Scanner {
             c => {
                 if is_digit(c) {
                     self.number();
+                } else if is_alpha(c) {
+                    self.identifier();
                 } else {
                     error(self.line, "Unexpected character.");
                 }
@@ -231,4 +266,12 @@ fn report(line: usize, position: String, message: &str) {
 
 fn is_digit(c: char) -> bool {
     return c >= '0' && c <= '9';
+}
+
+fn is_alpha(c: char) -> bool {
+    return c >= 'a' && c <= 'z' || c >= 'A' && c <= 'Z' || c == '_';
+}
+
+fn is_alphanumberic(c: char) -> bool {
+    return is_alpha(c) || is_digit(c);
 }
