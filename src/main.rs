@@ -1,6 +1,7 @@
 use std::env;
 use std::fs::File;
 use std::io::{self, BufRead, Write};
+mod expr;
 pub mod scanner;
 
 fn main() {
