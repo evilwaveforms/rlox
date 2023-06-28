@@ -8,17 +8,24 @@ pub enum Expr {
     Unary(Box<Unary>),
 }
 
+pub trait Visitor {
+    fn visit_binary_expr(&mut self);
+    fn visit_grouping_expr(&mut self);
+    fn visit_literal_expr(&mut self);
+    fn visit_unary_expr(&mut self);
+}
+
 pub struct Binary {
-    left: Expr,
-    operator: Token,
-    right: Expr,
+    pub left: Expr,
+    pub operator: Token,
+    pub right: Expr,
 }
 
 pub struct Grouping {
-    expression: Expr,
+    pub expression: Expr,
 }
 
 pub struct Unary {
-    operator: Token,
-    right: Expr,
+    pub operator: Token,
+    pub right: Expr,
 }

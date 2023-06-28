@@ -30,9 +30,9 @@ pub enum Literal {
 #[derive(Debug)]
 pub struct Token {
     pub lexeme: String,
-    line: usize,
-    literal: Option<Literal>,
-    ttype: TokenType,
+    pub line: usize,
+    pub literal: Option<Literal>,
+    pub ttype: TokenType,
 }
 
 pub struct Scanner {
