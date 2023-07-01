@@ -162,24 +162,24 @@ impl Scanner {
 
     fn keyword_or_identifier(&mut self, s: &str) {
         match s {
-            "and" => self.add_token(TokenType::And),
-            "class" => self.add_token(TokenType::Class),
-            "else" => self.add_token(TokenType::Else),
-            "false" => self.add_token(TokenType::False),
-            "for" => self.add_token(TokenType::For),
-            "fun" => self.add_token(TokenType::Fun),
-            "if" => self.add_token(TokenType::If),
-            "nil" => self.add_token(TokenType::Nil),
-            "or" => self.add_token(TokenType::Or),
-            "print" => self.add_token(TokenType::Print),
-            "return" => self.add_token(TokenType::Return),
-            "super" => self.add_token(TokenType::Super),
-            "this" => self.add_token(TokenType::This),
-            "true" => self.add_token(TokenType::True),
-            "var" => self.add_token(TokenType::Var),
-            "while" => self.add_token(TokenType::While),
+            "and" => self.add_token(TokenType::And, Some(s)),
+            "class" => self.add_token(TokenType::Class, Some(s)),
+            "else" => self.add_token(TokenType::Else, Some(s)),
+            "false" => self.add_token(TokenType::False, Some(s)),
+            "for" => self.add_token(TokenType::For, Some(s)),
+            "fun" => self.add_token(TokenType::Fun, Some(s)),
+            "if" => self.add_token(TokenType::If, Some(s)),
+            "nil" => self.add_token(TokenType::Nil, Some(s)),
+            "or" => self.add_token(TokenType::Or, Some(s)),
+            "print" => self.add_token(TokenType::Print, Some(s)),
+            "return" => self.add_token(TokenType::Return, Some(s)),
+            "super" => self.add_token(TokenType::Super, Some(s)),
+            "this" => self.add_token(TokenType::This, Some(s)),
+            "true" => self.add_token(TokenType::True, Some(s)),
+            "var" => self.add_token(TokenType::Var, Some(s)),
+            "while" => self.add_token(TokenType::While, Some(s)),
             _ => {
-                self.add_token(TokenType::Identifier);
+                self.add_token(TokenType::Identifier, Some(s));
             }
         }
     }
@@ -187,31 +187,31 @@ impl Scanner {
     fn scan_token(&mut self) {
         let c: char = self.advance();
         match c {
-            '(' => self.add_token(TokenType::LeftParen),
-            ')' => self.add_token(TokenType::RightParen),
-            '{' => self.add_token(TokenType::LeftBrace),
-            '}' => self.add_token(TokenType::RightBrace),
-            ',' => self.add_token(TokenType::Comma),
-            '.' => self.add_token(TokenType::Dot),
-            '-' => self.add_token(TokenType::Minus),
-            '+' => self.add_token(TokenType::Plus),
-            ';' => self.add_token(TokenType::Semicolon),
-            '*' => self.add_token(TokenType::Star),
+            '(' => self.add_token(TokenType::LeftParen, None),
+            ')' => self.add_token(TokenType::RightParen, None),
+            '{' => self.add_token(TokenType::LeftBrace, None),
+            '}' => self.add_token(TokenType::RightBrace, None),
+            ',' => self.add_token(TokenType::Comma, None),
+            '.' => self.add_token(TokenType::Dot, None),
+            '-' => self.add_token(TokenType::Minus, None),
+            '+' => self.add_token(TokenType::Plus, None),
+            ';' => self.add_token(TokenType::Semicolon, None),
+            '*' => self.add_token(TokenType::Star, None),
             '!' => match self.match_token('=') {
-                true => self.add_token(TokenType::BangEqual),
-                false => self.add_token(TokenType::Bang),
+                true => self.add_token(TokenType::BangEqual, None),
+                false => self.add_token(TokenType::Bang, None),
             },
             '=' => match self.match_token('=') {
-                true => self.add_token(TokenType::EqualEqual),
-                false => self.add_token(TokenType::Equal),
+                true => self.add_token(TokenType::EqualEqual, None),
+                false => self.add_token(TokenType::Equal, None),
             },
             '<' => match self.match_token('=') {
-                true => self.add_token(TokenType::LessEqual),
-                false => self.add_token(TokenType::Less),
+                true => self.add_token(TokenType::LessEqual, None),
+                false => self.add_token(TokenType::Less, None),
             },
             '>' => match self.match_token('=') {
-                true => self.add_token(TokenType::GreaterEqual),
-                false => self.add_token(TokenType::Greater),
+                true => self.add_token(TokenType::GreaterEqual, None),
+                false => self.add_token(TokenType::Greater, None),
             },
             '/' => match self.match_token('/') {
                 true => {
@@ -219,7 +219,7 @@ impl Scanner {
                         self.advance();
                     }
                 }
-                false => self.add_token(TokenType::Slash),
+                false => self.add_token(TokenType::Slash, None),
             },
             ' ' | '\r' | '\t' => {}
             '\n' => self.line += 1,
@@ -250,8 +250,8 @@ impl Scanner {
         return self.list.push(t);
     }
 
-    fn add_token(&mut self, ttype: TokenType) {
-        let l = Literal::Str(String::from("test"));
+    fn add_token(&mut self, ttype: TokenType, s: Option<&str>) {
+        let l = Literal::Str(String::from(s.unwrap_or("")));
         self.make_token(ttype, l);
     }
 }
