@@ -3,6 +3,7 @@ use std::fs::File;
 use std::io::{self, BufRead, Write};
 mod ast_printer;
 mod expr;
+mod parser;
 pub mod scanner;
 mod test_ast_printer;
 
