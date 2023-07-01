@@ -2,7 +2,7 @@ use std::fmt;
 use std::str;
 
 #[rustfmt::skip]
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum TokenType {
     LeftParen, RightParen, LeftBrace, RightBrace,
     Comma, Dot, Minus, Plus, Semicolon, Slash, Star,
@@ -117,7 +117,7 @@ impl Scanner {
             self.advance();
         }
         if self.is_at_end() {
-            error(self.line, "Unterminated string.");
+            report(self.line, "", "Unterminated string.");
             return;
         }
         self.advance();
@@ -230,7 +230,7 @@ impl Scanner {
                 } else if is_alpha(c) {
                     self.identifier();
                 } else {
-                    error(self.line, "Unexpected character.");
+                    report(self.line, "", "Unexpected character.");
                 }
             }
         };
@@ -256,11 +256,14 @@ impl Scanner {
     }
 }
 
-fn error(line: usize, message: &str) {
-    report(line, "".to_string(), message);
+pub fn error(token: Token, message: &str) {
+    if token.ttype == TokenType::Eof {
+        report(token.line, " at end", message);
+    }
+    report(token.line, &format!(" at ' {} '", token.lexeme), &message);
 }
 
-fn report(line: usize, position: String, message: &str) {
+fn report(line: usize, position: &str, message: &str) {
     println!("[line: {}] Error: {} : {}", line, position, message);
 }
 
