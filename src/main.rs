@@ -53,4 +53,14 @@ fn run(idx: usize, source: Vec<u8>) {
         line: idx,
     };
     scanner.scan_tokens();
+    let mut parser = parser::Parser {
+        tokens: scanner.list,
+        current: 2,
+    };
+    match parser.parse() {
+        Ok(expr) => {
+            println!("{:?}", expr.print());
+        }
+        Err(e) => return,
+    };
 }
