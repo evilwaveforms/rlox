@@ -188,6 +188,9 @@ impl Parser {
     }
 
     fn is_at_end(&self) -> bool {
+        if self.current >= self.tokens.len() {
+            true;
+        }
         self.peek().ttype == TokenType::Eof
     }
 
