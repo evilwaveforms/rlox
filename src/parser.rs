@@ -24,17 +24,11 @@ impl Parser {
     }
 
     fn equality(&mut self) -> Result<Expr, Error> {
-        let mut expr: Expr = match self.comparison() {
-            Ok(expr) => expr,
-            Err(e) => return Err(e),
-        };
+        let mut expr: Expr = self.comparison()?;
 
         while self.matching(&[TokenType::BangEqual, TokenType::EqualEqual]) {
             let op: Token = self.previous();
-            let r: Expr = match self.comparison() {
-                Ok(r) => r,
-                Err(e) => return Err(e),
-            };
+            let r: Expr = self.comparison()?;
             expr = Expr::Binary(Box::new(Binary {
                 left: expr,
                 operator: op,
@@ -45,10 +39,7 @@ impl Parser {
     }
 
     fn comparison(&mut self) -> Result<Expr, Error> {
-        let mut expr: Expr = match self.term() {
-            Ok(expr) => expr,
-            Err(e) => return Err(e),
-        };
+        let mut expr: Expr = self.term()?;
 
         while self.matching(&[
             TokenType::Greater,
@@ -57,10 +48,7 @@ impl Parser {
             TokenType::LessEqual,
         ]) {
             let op: Token = self.previous();
-            let r: Expr = match self.term() {
-                Ok(expr) => expr,
-                Err(e) => return Err(e),
-            };
+            let r: Expr = self.term()?;
             expr = Expr::Binary(Box::new(Binary {
                 left: expr,
                 operator: op,
@@ -71,17 +59,12 @@ impl Parser {
     }
 
     fn term(&mut self) -> Result<Expr, Error> {
-        let mut expr: Expr = match self.factor() {
-            Ok(expr) => expr,
-            Err(e) => return Err(e),
-        };
+        let mut expr: Expr = self.factor()?;
 
         while self.matching(&[TokenType::Minus, TokenType::Plus]) {
             let op: Token = self.previous();
-            let r: Expr = match self.factor() {
-                Ok(r) => r,
-                Err(e) => return Err(e),
-            };
+            let r: Expr = self.factor()?;
+
             expr = Expr::Binary(Box::new(Binary {
                 left: expr,
                 operator: op,
@@ -92,10 +75,7 @@ impl Parser {
     }
 
     fn factor(&mut self) -> Result<Expr, Error> {
-        let expr: Expr = match self.unary() {
-            Ok(expr) => expr,
-            Err(e) => return Err(e),
-        };
+        let expr: Expr = self.unary()?;
 
         while self.matching(&[TokenType::Slash, TokenType::Star]) {
             let op: Token = self.previous();
@@ -147,10 +127,10 @@ impl Parser {
         if self.matching(&[TokenType::LeftParen]) {
             match self.expression() {
                 Ok(expr) => {
-                    self.consume(&TokenType::RightParen, "Except ')' after expression.");
+                    self.consume(&TokenType::RightParen, "Except ')' after expression.")?;
                     return Ok(Expr::Grouping(Box::new(Grouping { expression: expr })));
                 }
-                Err(e) => return Err(Error::ParseError),
+                Err(e) => return Err(e),
             };
         }
         Err(self.error(self.peek(), "Expect expression."))
@@ -195,15 +175,19 @@ impl Parser {
     }
 
     fn peek(&self) -> Token {
-        self.tokens[self.current].clone()
+        match self.tokens.get(self.current) {
+            Some(token) => return token.clone(),
+            None => panic!("Peek(), index out of range"),
+        };
     }
 
     fn previous(&self) -> Token {
         self.tokens[self.current - 1].clone()
     }
 
-    fn error(&self, token: Token, message: &str) -> Error {
+    fn error(&mut self, token: Token, message: &str) -> Error {
         scanner::error(token, &message);
+        // self.synchronize();
         Error::ParseError
     }
 
@@ -231,9 +215,7 @@ impl Parser {
     }
 
     pub fn parse(&mut self) -> Result<Expr, Error> {
-        match self.expression() {
-            Ok(expr) => return Ok(expr),
-            Err(e) => return Err(e),
-        };
+        let expr = self.expression()?;
+        Ok(expr)
     }
 }

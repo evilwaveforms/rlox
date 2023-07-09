@@ -8,6 +8,7 @@ pub mod scanner;
 mod test_ast_printer;
 
 fn main() {
+    env::set_var("RUST_BACKTRACE", "1");
     let args: Vec<String> = env::args().collect();
     if args.len() > 2 {
         print!("Usage: rlox [script]");
