@@ -133,7 +133,10 @@ impl Parser {
                 Err(e) => return Err(e),
             };
         }
-        Err(self.error(self.peek(), "Expect expression."))
+        match self.peek() {
+            Ok(token) => Err(self.error(token, "Expect expression.")),
+            Err(e) => Err(e)
+        }
     }
 
     fn matching(&mut self, ttypes: &[TokenType]) -> bool {
@@ -150,14 +153,21 @@ impl Parser {
         if self.check(ttype) {
             return Ok(self.advance());
         }
-        Err(self.error(self.peek(), message))
+        match self.peek() {
+            Ok(token) => Err(self.error(token, message)),
+            Err(e) => Err(e)
+        }
     }
 
     fn check(&self, ttype: &TokenType) -> bool {
         if self.is_at_end() {
             return false;
         };
-        &self.peek().ttype == ttype
+        match self.peek() {
+            Ok(token) => &token.ttype == ttype,
+            Err(e) => true
+        }
+
     }
 
     fn advance(&mut self) -> Token {
@@ -171,14 +181,17 @@ impl Parser {
         if self.current >= self.tokens.len() {
             true;
         }
-        self.peek().ttype == TokenType::Eof
+        match self.peek() {
+            Ok(token) => token.ttype == TokenType::Eof,
+            Err(e) => true
+        }
     }
 
-    fn peek(&self) -> Token {
+    fn peek(&self) -> Result<Token, Error> {
         match self.tokens.get(self.current) {
-            Some(token) => return token.clone(),
-            None => panic!("Peek(), index out of range"),
-        };
+            Some(token) => return Ok(token.clone()),
+            None => Err(Error::ParseError)
+        }
     }
 
     fn previous(&self) -> Token {
@@ -191,28 +204,28 @@ impl Parser {
         Error::ParseError
     }
 
-    fn synchronize(&mut self) {
-        self.advance();
+    // fn synchronize(&mut self) {
+    //     self.advance();
 
-        while !self.is_at_end() {
-            if self.previous().ttype == TokenType::Semicolon {
-                return;
-            }
+    //     while !self.is_at_end() {
+    //         if self.previous().ttype == TokenType::Semicolon {
+    //             return;
+    //         }
 
-            match self.peek().ttype {
-                TokenType::Class => return,
-                TokenType::Fun => return,
-                TokenType::Var => return,
-                TokenType::For => return,
-                TokenType::If => return,
-                TokenType::While => return,
-                TokenType::Print => return,
-                TokenType::Return => return,
-                _ => (),
-            }
-            self.advance();
-        }
-    }
+    //         match self.peek().ttype {
+    //             TokenType::Class => return,
+    //             TokenType::Fun => return,
+    //             TokenType::Var => return,
+    //             TokenType::For => return,
+    //             TokenType::If => return,
+    //             TokenType::While => return,
+    //             TokenType::Print => return,
+    //             TokenType::Return => return,
+    //             _ => (),
+    //         }
+    //         self.advance();
+    //     }
+    // }
 
     pub fn parse(&mut self) -> Result<Expr, Error> {
         let expr = self.expression()?;
