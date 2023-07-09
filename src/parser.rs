@@ -135,7 +135,7 @@ impl Parser {
         }
         match self.peek() {
             Ok(token) => Err(self.error(token, "Expect expression.")),
-            Err(e) => Err(e)
+            Err(e) => Err(e),
         }
     }
 
@@ -155,7 +155,7 @@ impl Parser {
         }
         match self.peek() {
             Ok(token) => Err(self.error(token, message)),
-            Err(e) => Err(e)
+            Err(e) => Err(e),
         }
     }
 
@@ -165,9 +165,8 @@ impl Parser {
         };
         match self.peek() {
             Ok(token) => &token.ttype == ttype,
-            Err(e) => true
+            Err(e) => true,
         }
-
     }
 
     fn advance(&mut self) -> Token {
@@ -183,14 +182,14 @@ impl Parser {
         }
         match self.peek() {
             Ok(token) => token.ttype == TokenType::Eof,
-            Err(e) => true
+            Err(e) => true,
         }
     }
 
     fn peek(&self) -> Result<Token, Error> {
         match self.tokens.get(self.current) {
             Some(token) => return Ok(token.clone()),
-            None => Err(Error::ParseError)
+            None => Err(Error::ParseError),
         }
     }
 
@@ -200,32 +199,36 @@ impl Parser {
 
     fn error(&mut self, token: Token, message: &str) -> Error {
         scanner::error(token, &message);
-        // self.synchronize();
+        self.synchronize();
         Error::ParseError
     }
 
-    // fn synchronize(&mut self) {
-    //     self.advance();
+    fn synchronize(&mut self) {
+        self.advance();
 
-    //     while !self.is_at_end() {
-    //         if self.previous().ttype == TokenType::Semicolon {
-    //             return;
-    //         }
+        while !self.is_at_end() {
+            if self.previous().ttype == TokenType::Semicolon {
+                return;
+            }
+            let token = match self.peek() {
+                Ok(token) => token,
+                Err(e) => return,
+            };
 
-    //         match self.peek().ttype {
-    //             TokenType::Class => return,
-    //             TokenType::Fun => return,
-    //             TokenType::Var => return,
-    //             TokenType::For => return,
-    //             TokenType::If => return,
-    //             TokenType::While => return,
-    //             TokenType::Print => return,
-    //             TokenType::Return => return,
-    //             _ => (),
-    //         }
-    //         self.advance();
-    //     }
-    // }
+            match token.ttype {
+                TokenType::Class => return,
+                TokenType::Fun => return,
+                TokenType::Var => return,
+                TokenType::For => return,
+                TokenType::If => return,
+                TokenType::While => return,
+                TokenType::Print => return,
+                TokenType::Return => return,
+                _ => (),
+            }
+            self.advance();
+        }
+    }
 
     pub fn parse(&mut self) -> Result<Expr, Error> {
         let expr = self.expression()?;
