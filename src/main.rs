@@ -6,6 +6,7 @@ mod expr;
 mod parser;
 pub mod scanner;
 mod test_ast_printer;
+mod interpreter;
 
 fn main() {
     env::set_var("RUST_BACKTRACE", "1");
