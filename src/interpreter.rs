@@ -1,5 +1,5 @@
 use crate::{
-    expr::{Expr, Grouping, Unary},
+    expr::{Binary, Expr, Grouping, Unary},
     scanner::Literal,
     scanner::TokenType,
 };
@@ -25,6 +25,18 @@ pub fn evaluate(expr: Expr) -> Result<Data, Error> {
     }
 }
 
+fn evaluate_binary(expr: Binary) -> Result<Data, Error> {
+    let left = evaluate(expr.left)?;
+    let right = evaluate(expr.right)?;
+
+    match expr.operator.ttype {
+        TokenType::Minus => todo!(),
+        TokenType::Slash => todo!(),
+        TokenType::Star => todo!(),
+        _ => Err(Error::ValueError),
+    }
+}
+
 fn evaluate_literal(literal: Literal) -> Result<Data, Error> {
     match literal {
         Literal::Str(str) => Ok(Data::Str(str)),
@@ -38,11 +50,25 @@ fn evaluate_grouping(grouping: Grouping) -> Result<Data, Error> {
 }
 
 fn evaluate_unary(unary: Unary) -> Result<Data, Error> {
-    let right = evaluate(unary.right);
+    let right = evaluate(unary.right)?;
 
     match unary.operator.ttype {
-        TokenType::Minus => todo!(), //Ok(Data::Number(right)),
+        TokenType::Minus => match right {
+            Data::Number(right) => Ok(Data::Number(-right)),
+            _ => Err(Error::ValueError),
+        },
+        TokenType::Bang => {
+             Ok(Data::Bool(is_truthy(right)))
+        },
         _ => return Err(Error::ValueError),
+    }
+}
+
+fn is_truthy(data: Data) -> bool {
+    match data {
+        Data::Nil => false,
+        Data::Bool(val) => val,
+        _ => true
     }
 }
 
