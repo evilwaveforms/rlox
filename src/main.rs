@@ -1,6 +1,8 @@
 use std::env;
 use std::fs::File;
 use std::io::{self, BufRead, Write};
+
+use crate::interpreter::interpret;
 mod ast_printer;
 mod expr;
 mod parser;
@@ -61,7 +63,8 @@ fn run(idx: usize, source: Vec<u8>) {
     };
     match parser.parse() {
         Ok(expr) => {
-            println!("{:?}", expr.print());
+            //println!("{:?}", expr.print());
+            interpret(expr);
         }
         Err(e) => println!("{:?}", e),
     };
