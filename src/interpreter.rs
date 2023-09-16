@@ -1,9 +1,9 @@
-use std::fmt;
 use crate::{
     expr::{Binary, Expr, Grouping, Unary},
     scanner::Literal,
     scanner::TokenType,
 };
+use std::fmt;
 
 #[derive(Debug, PartialEq)]
 pub enum Data {
@@ -15,12 +15,12 @@ pub enum Data {
 
 impl fmt::Display for Data {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-       match self {
-           Data::Number(num) => write!(f, "{}", num),
-           Data::Str(str) => write!(f, "{}", str),
-           Data::Bool(bool) => write!(f, "{}", bool),
-           Data::Nil => write!(f, "nil"),
-       }
+        match self {
+            Data::Number(num) => write!(f, "{}", num),
+            Data::Str(str) => write!(f, "{}", str),
+            Data::Bool(bool) => write!(f, "{}", bool),
+            Data::Nil => write!(f, "nil"),
+        }
     }
 }
 
@@ -122,9 +122,11 @@ fn is_truthy(data: Data) -> bool {
 }
 
 fn is_equal(a: Data, b: Data) -> bool {
-    if a == Data::Nil && b == Data::Nil { return true }
-    if a == Data::Nil { return false }
+    if a == Data::Nil && b == Data::Nil {
+        return true;
+    }
+    if a == Data::Nil {
+        return false;
+    }
     a == b
 }
-
-fn stringify(data: Data) {}
