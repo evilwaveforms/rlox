@@ -27,7 +27,7 @@ fn run_file(path: &String) {
     let file = File::open(&path).expect("Unable to open file");
     let lines = io::BufReader::new(&file).lines();
     for (i, line) in lines.enumerate() {
-        run(i + 1, line.unwrap().into_bytes());
+        run(i + 1, line.unwrap().into_bytes(), false);
     }
 }
 
@@ -43,11 +43,11 @@ fn run_prompt() {
         if line.is_empty() {
             break;
         }
-        run(0, line.into_bytes());
+        run(0, line.into_bytes(), true);
     }
 }
 
-fn run(idx: usize, source: Vec<u8>) {
+fn run(idx: usize, source: Vec<u8>, repl: bool) {
     let v: Vec<scanner::Token> = vec![];
     let mut scanner = scanner::Scanner {
         source,
@@ -64,7 +64,7 @@ fn run(idx: usize, source: Vec<u8>) {
     match parser.parse() {
         Ok(expr) => {
             //println!("{:?}", expr.print());
-            interpret(expr);
+            interpret(expr, repl);
         }
         Err(e) => println!("{:?}", e),
     };

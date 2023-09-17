@@ -56,10 +56,15 @@ impl std::fmt::Display for Error {
     }
 }
 
-pub fn interpret(expr: Expr) {
+pub fn interpret(expr: Expr, repl: bool) {
     match evaluate(expr) {
         Ok(value) => println!("{:?}", value.to_string()),
-        Err(err) => eprintln!("Error: {:?}", err.to_string()),
+        Err(err) => {
+            if !repl {
+                panic!("Error: {:?}", err.to_string())
+            }
+            eprintln!("Error: {:?}", err.to_string())
+        }
     };
 }
 
