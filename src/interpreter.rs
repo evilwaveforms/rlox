@@ -26,12 +26,34 @@ impl fmt::Display for Data {
 
 #[derive(Debug)]
 pub enum Error {
+    OperandNumberError(TokenType, String, String),
+    AdditionError(TokenType, String, String),
     ValueError,
 }
 
+impl std::fmt::Display for Error {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        match *self {
+            Error::OperandNumberError(ref operator, ref left, ref right) => write!(
+                f,
+                "Operand must be a number. Token: {}, Left: {}, Right: {}",
+                operator, left, right
+            ),
+            Error::AdditionError(ref operator, ref left, ref right) => write!(
+                f,
+                "Operands must be two numbers or two strings. Token: {}, Left: {}, Right: {}",
+                operator, left, right
+            ),
+            Error::ValueError => write!(f, "error"),
+        }
+    }
+}
+
 pub fn interpret(expr: Expr) {
-    let value = evaluate(expr);
-    println!("{:?}", value);
+    match evaluate(expr) {
+        Ok(value) => println!("{:?}", value.to_string()),
+        Err(err) => eprintln!("Error: {:?}", err.to_string()),
+    };
 }
 
 pub fn evaluate(expr: Expr) -> Result<Data, Error> {
@@ -47,40 +69,71 @@ fn evaluate_binary(expr: Binary) -> Result<Data, Error> {
     let left = evaluate(expr.left)?;
     let right = evaluate(expr.right)?;
 
-    // I know
     match expr.operator.ttype {
-        TokenType::Plus => match (left, right) {
+        TokenType::Plus => match (&left, &right) {
             (Data::Number(left), Data::Number(right)) => Ok(Data::Number(left + right)),
-            (Data::Str(left), Data::Str(right)) => Ok(Data::Str(left + &right)),
-            _ => Err(Error::ValueError),
+            (Data::Str(left), Data::Str(right)) => Ok(Data::Str(left.to_owned() + &right)),
+            _ => Err(Error::AdditionError(
+                expr.operator.ttype,
+                left.to_string(),
+                right.to_string(),
+            )),
         },
-        TokenType::Minus => match (left, right) {
+        TokenType::Minus => match (&left, &right) {
             (Data::Number(left), Data::Number(right)) => Ok(Data::Number(left - right)),
-            _ => Err(Error::ValueError),
+            _ => Err(Error::OperandNumberError(
+                expr.operator.ttype,
+                left.to_string(),
+                right.to_string(),
+            )),
         },
-        TokenType::Slash => match (left, right) {
+        TokenType::Slash => match (&left, &right) {
             (Data::Number(left), Data::Number(right)) => Ok(Data::Number(left / right)),
-            _ => Err(Error::ValueError),
+            _ => Err(Error::OperandNumberError(
+                expr.operator.ttype,
+                left.to_string(),
+                right.to_string(),
+            )),
         },
-        TokenType::Star => match (left, right) {
+        TokenType::Star => match (&left, &right) {
             (Data::Number(left), Data::Number(right)) => Ok(Data::Number(left * right)),
-            _ => Err(Error::ValueError),
+            _ => Err(Error::OperandNumberError(
+                expr.operator.ttype,
+                left.to_string(),
+                right.to_string(),
+            )),
         },
-        TokenType::Greater => match (left, right) {
+        TokenType::Greater => match (&left, &right) {
             (Data::Number(left), Data::Number(right)) => Ok(Data::Bool(left > right)),
-            _ => Err(Error::ValueError),
+            _ => Err(Error::OperandNumberError(
+                expr.operator.ttype,
+                left.to_string(),
+                right.to_string(),
+            )),
         },
-        TokenType::GreaterEqual => match (left, right) {
+        TokenType::GreaterEqual => match (&left, &right) {
             (Data::Number(left), Data::Number(right)) => Ok(Data::Bool(left >= right)),
-            _ => Err(Error::ValueError),
+            _ => Err(Error::OperandNumberError(
+                expr.operator.ttype,
+                left.to_string(),
+                right.to_string(),
+            )),
         },
-        TokenType::Less => match (left, right) {
+        TokenType::Less => match (&left, &right) {
             (Data::Number(left), Data::Number(right)) => Ok(Data::Bool(left < right)),
-            _ => Err(Error::ValueError),
+            _ => Err(Error::OperandNumberError(
+                expr.operator.ttype,
+                left.to_string(),
+                right.to_string(),
+            )),
         },
-        TokenType::LessEqual => match (left, right) {
+        TokenType::LessEqual => match (&left, &right) {
             (Data::Number(left), Data::Number(right)) => Ok(Data::Bool(left <= right)),
-            _ => Err(Error::ValueError),
+            _ => Err(Error::OperandNumberError(
+                expr.operator.ttype,
+                left.to_string(),
+                right.to_string(),
+            )),
         },
         TokenType::BangEqual => Ok(Data::Bool(!is_equal(left, right))),
         TokenType::EqualEqual => Ok(Data::Bool(is_equal(left, right))),
