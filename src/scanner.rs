@@ -45,7 +45,11 @@ pub struct Scanner {
 
 impl fmt::Display for Literal {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}", self.to_string())
+        match self {
+            Literal::Identifier(id) => write!(f, "{}", id),
+            Literal::Str(str) => write!(f, "{}", str),
+            Literal::Number(num) => write!(f, "{}", num),
+        }
     }
 }
 
@@ -53,7 +57,8 @@ impl fmt::Display for Token {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(
             f,
-            "{} {} {}",
+            "Line: {}, Token type: {}, Lexeme: {} Literal: {}",
+            self.line,
             self.ttype,
             self.lexeme,
             self.literal.as_ref().unwrap().to_string()
@@ -238,9 +243,7 @@ impl Scanner {
             literal: Some(literal),
             ttype,
         };
-        println!("Lexeme: {:?}", t.lexeme);
-        println!("Token type: {:?}", t.ttype);
-        println!("Literal: {:?}", t.literal);
+        println!("Token {:?}", t);
         return self.list.push(t);
     }
 

@@ -1,6 +1,7 @@
 use crate::{
     expr::{Binary, Expr, Grouping, Unary},
     scanner::Literal,
+    scanner::Token,
     scanner::TokenType,
 };
 use std::fmt;
@@ -26,23 +27,23 @@ impl fmt::Display for Data {
 
 #[derive(Debug)]
 pub enum Error {
-    OperandNumberError(TokenType, String, String),
-    AdditionError(TokenType, String, String),
+    OperandNumberError(Token, String, String),
+    AdditionError(Token, String, String),
     ValueError,
 }
 
 impl std::fmt::Display for Error {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         match *self {
-            Error::OperandNumberError(ref operator, ref left, ref right) => write!(
+            Error::OperandNumberError(ref token, ref left, ref right) => write!(
                 f,
                 "Operand must be a number. Token: {}, Left: {}, Right: {}",
-                operator, left, right
+                token, left, right
             ),
-            Error::AdditionError(ref operator, ref left, ref right) => write!(
+            Error::AdditionError(ref token, ref left, ref right) => write!(
                 f,
                 "Operands must be two numbers or two strings. Token: {}, Left: {}, Right: {}",
-                operator, left, right
+                token, left, right
             ),
             Error::ValueError => write!(f, "error"),
         }
@@ -74,7 +75,7 @@ fn evaluate_binary(expr: Binary) -> Result<Data, Error> {
             (Data::Number(left), Data::Number(right)) => Ok(Data::Number(left + right)),
             (Data::Str(left), Data::Str(right)) => Ok(Data::Str(left.to_owned() + &right)),
             _ => Err(Error::AdditionError(
-                expr.operator.ttype,
+                expr.operator,
                 left.to_string(),
                 right.to_string(),
             )),
@@ -82,7 +83,7 @@ fn evaluate_binary(expr: Binary) -> Result<Data, Error> {
         TokenType::Minus => match (&left, &right) {
             (Data::Number(left), Data::Number(right)) => Ok(Data::Number(left - right)),
             _ => Err(Error::OperandNumberError(
-                expr.operator.ttype,
+                expr.operator,
                 left.to_string(),
                 right.to_string(),
             )),
@@ -90,7 +91,7 @@ fn evaluate_binary(expr: Binary) -> Result<Data, Error> {
         TokenType::Slash => match (&left, &right) {
             (Data::Number(left), Data::Number(right)) => Ok(Data::Number(left / right)),
             _ => Err(Error::OperandNumberError(
-                expr.operator.ttype,
+                expr.operator,
                 left.to_string(),
                 right.to_string(),
             )),
@@ -98,7 +99,7 @@ fn evaluate_binary(expr: Binary) -> Result<Data, Error> {
         TokenType::Star => match (&left, &right) {
             (Data::Number(left), Data::Number(right)) => Ok(Data::Number(left * right)),
             _ => Err(Error::OperandNumberError(
-                expr.operator.ttype,
+                expr.operator,
                 left.to_string(),
                 right.to_string(),
             )),
@@ -106,7 +107,7 @@ fn evaluate_binary(expr: Binary) -> Result<Data, Error> {
         TokenType::Greater => match (&left, &right) {
             (Data::Number(left), Data::Number(right)) => Ok(Data::Bool(left > right)),
             _ => Err(Error::OperandNumberError(
-                expr.operator.ttype,
+                expr.operator,
                 left.to_string(),
                 right.to_string(),
             )),
@@ -114,7 +115,7 @@ fn evaluate_binary(expr: Binary) -> Result<Data, Error> {
         TokenType::GreaterEqual => match (&left, &right) {
             (Data::Number(left), Data::Number(right)) => Ok(Data::Bool(left >= right)),
             _ => Err(Error::OperandNumberError(
-                expr.operator.ttype,
+                expr.operator,
                 left.to_string(),
                 right.to_string(),
             )),
@@ -122,7 +123,7 @@ fn evaluate_binary(expr: Binary) -> Result<Data, Error> {
         TokenType::Less => match (&left, &right) {
             (Data::Number(left), Data::Number(right)) => Ok(Data::Bool(left < right)),
             _ => Err(Error::OperandNumberError(
-                expr.operator.ttype,
+                expr.operator,
                 left.to_string(),
                 right.to_string(),
             )),
@@ -130,7 +131,7 @@ fn evaluate_binary(expr: Binary) -> Result<Data, Error> {
         TokenType::LessEqual => match (&left, &right) {
             (Data::Number(left), Data::Number(right)) => Ok(Data::Bool(left <= right)),
             _ => Err(Error::OperandNumberError(
-                expr.operator.ttype,
+                expr.operator,
                 left.to_string(),
                 right.to_string(),
             )),
