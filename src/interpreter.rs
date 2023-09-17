@@ -28,6 +28,7 @@ impl fmt::Display for Data {
 #[derive(Debug)]
 pub enum Error {
     OperandNumberError(Token, String, String),
+    OperandNumbersError(Token, String, String),
     AdditionError(Token, String, String),
     ValueError,
 }
@@ -37,7 +38,12 @@ impl std::fmt::Display for Error {
         match *self {
             Error::OperandNumberError(ref token, ref left, ref right) => write!(
                 f,
-                "Operand must be a number. Token: {}, Left: {}, Right: {}",
+                "Operand must be a number. Token: {}, Right: {}",
+                token, right
+            ),
+            Error::OperandNumbersError(ref token, ref left, ref right) => write!(
+                f,
+                "Operands must be numbers. Token: {}, Left: {}, Right: {}",
                 token, left, right
             ),
             Error::AdditionError(ref token, ref left, ref right) => write!(
@@ -82,7 +88,7 @@ fn evaluate_binary(expr: Binary) -> Result<Data, Error> {
         },
         TokenType::Minus => match (&left, &right) {
             (Data::Number(left), Data::Number(right)) => Ok(Data::Number(left - right)),
-            _ => Err(Error::OperandNumberError(
+            _ => Err(Error::OperandNumbersError(
                 expr.operator,
                 left.to_string(),
                 right.to_string(),
@@ -90,7 +96,7 @@ fn evaluate_binary(expr: Binary) -> Result<Data, Error> {
         },
         TokenType::Slash => match (&left, &right) {
             (Data::Number(left), Data::Number(right)) => Ok(Data::Number(left / right)),
-            _ => Err(Error::OperandNumberError(
+            _ => Err(Error::OperandNumbersError(
                 expr.operator,
                 left.to_string(),
                 right.to_string(),
@@ -98,7 +104,7 @@ fn evaluate_binary(expr: Binary) -> Result<Data, Error> {
         },
         TokenType::Star => match (&left, &right) {
             (Data::Number(left), Data::Number(right)) => Ok(Data::Number(left * right)),
-            _ => Err(Error::OperandNumberError(
+            _ => Err(Error::OperandNumbersError(
                 expr.operator,
                 left.to_string(),
                 right.to_string(),
@@ -106,7 +112,7 @@ fn evaluate_binary(expr: Binary) -> Result<Data, Error> {
         },
         TokenType::Greater => match (&left, &right) {
             (Data::Number(left), Data::Number(right)) => Ok(Data::Bool(left > right)),
-            _ => Err(Error::OperandNumberError(
+            _ => Err(Error::OperandNumbersError(
                 expr.operator,
                 left.to_string(),
                 right.to_string(),
@@ -114,7 +120,7 @@ fn evaluate_binary(expr: Binary) -> Result<Data, Error> {
         },
         TokenType::GreaterEqual => match (&left, &right) {
             (Data::Number(left), Data::Number(right)) => Ok(Data::Bool(left >= right)),
-            _ => Err(Error::OperandNumberError(
+            _ => Err(Error::OperandNumbersError(
                 expr.operator,
                 left.to_string(),
                 right.to_string(),
@@ -122,7 +128,7 @@ fn evaluate_binary(expr: Binary) -> Result<Data, Error> {
         },
         TokenType::Less => match (&left, &right) {
             (Data::Number(left), Data::Number(right)) => Ok(Data::Bool(left < right)),
-            _ => Err(Error::OperandNumberError(
+            _ => Err(Error::OperandNumbersError(
                 expr.operator,
                 left.to_string(),
                 right.to_string(),
@@ -130,7 +136,7 @@ fn evaluate_binary(expr: Binary) -> Result<Data, Error> {
         },
         TokenType::LessEqual => match (&left, &right) {
             (Data::Number(left), Data::Number(right)) => Ok(Data::Bool(left <= right)),
-            _ => Err(Error::OperandNumberError(
+            _ => Err(Error::OperandNumbersError(
                 expr.operator,
                 left.to_string(),
                 right.to_string(),
@@ -154,13 +160,17 @@ fn evaluate_grouping(grouping: Grouping) -> Result<Data, Error> {
     evaluate(grouping.expression)
 }
 
-fn evaluate_unary(unary: Unary) -> Result<Data, Error> {
-    let right = evaluate(unary.right)?;
+fn evaluate_unary(expr: Unary) -> Result<Data, Error> {
+    let right = evaluate(expr.right)?;
 
-    match unary.operator.ttype {
+    match expr.operator.ttype {
         TokenType::Minus => match right {
             Data::Number(right) => Ok(Data::Number(-right)),
-            _ => Err(Error::ValueError),
+            _ => Err(Error::OperandNumberError(
+                expr.operator,
+                String::new(),
+                right.to_string(),
+            )),
         },
         TokenType::Bang => Ok(Data::Bool(is_truthy(right))),
         _ => return Err(Error::ValueError),
