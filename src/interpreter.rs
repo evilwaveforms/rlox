@@ -3,6 +3,7 @@ use crate::{
     scanner::Literal,
     scanner::Token,
     scanner::TokenType,
+    stmt::{Expression, Print, Stmt},
 };
 use std::fmt;
 
@@ -56,16 +57,19 @@ impl std::fmt::Display for Error {
     }
 }
 
-pub fn interpret(expr: Expr, repl: bool) {
-    match evaluate(expr) {
-        Ok(value) => println!("{:?}", value.to_string()),
-        Err(err) => {
-            if !repl {
-                panic!("Error: {:?}", err.to_string())
-            }
-            eprintln!("Error: {:?}", err.to_string())
-        }
-    };
+pub fn interpret(statements: Vec<Stmt>, repl: bool) {
+    for stmt in statements.into_iter() {
+        execute(stmt)
+        // match execute(stmt) {
+        //     Ok(value) => println!("{:?}", value.to_string()),
+        //     Err(err) => {
+        //         if !repl {
+        //             panic!("Error: {:?}", err.to_string())
+        //         }
+        //         eprintln!("Error: {:?}", err.to_string())
+        //     }
+        // };
+    }
 }
 
 pub fn evaluate(expr: Expr) -> Result<Data, Error> {
@@ -75,6 +79,22 @@ pub fn evaluate(expr: Expr) -> Result<Data, Error> {
         Expr::Literal(lit) => evaluate_literal(lit),
         Expr::Unary(unary) => evaluate_unary(*unary),
     }
+}
+
+fn execute(stmt: Stmt) -> () {
+    match stmt {
+        Stmt::Expression(expr) => evaluate_expression_stmt(expr),
+        Stmt::Print(expr) => evaluate_print_stmt(expr),
+    }
+}
+
+fn evaluate_expression_stmt(stmt: Expression) -> () {
+    evaluate(stmt.expression);
+}
+
+fn evaluate_print_stmt(stmt: Print) -> () {
+    let val = evaluate(stmt.expression);
+    println!("{:?}", val)
 }
 
 fn evaluate_binary(expr: Binary) -> Result<Data, Error> {

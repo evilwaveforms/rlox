@@ -6,6 +6,9 @@ use crate::scanner;
 use crate::scanner::Literal;
 use crate::scanner::Token;
 use crate::scanner::TokenType;
+use crate::stmt::Expression;
+use crate::stmt::Print;
+use crate::stmt::Stmt;
 
 #[derive(Debug)]
 pub struct Parser {
@@ -21,6 +24,25 @@ pub enum Error {
 impl Parser {
     fn expression(&mut self) -> Result<Expr, Error> {
         self.equality()
+    }
+
+    fn statement(&mut self) -> Result<Stmt, Error> {
+        if self.matching(&[TokenType::Print]) {
+            return self.print_statement();
+        }
+        self.expression_statement()
+    }
+
+    fn print_statement(&mut self) -> Result<Stmt, Error> {
+        let expr: Expr = self.expression()?;
+        self.consume(&TokenType::Semicolon, "Expect ';' after value.")?;
+        Ok(Stmt::Print(Print { expression: expr }))
+    }
+
+    fn expression_statement(&mut self) -> Result<Stmt, Error> {
+        let expr: Expr = self.expression()?;
+        self.consume(&TokenType::Semicolon, "Expect ';' after value.")?;
+        Ok(Stmt::Expression(Expression { expression: expr }))
     }
 
     fn equality(&mut self) -> Result<Expr, Error> {
@@ -230,8 +252,11 @@ impl Parser {
         }
     }
 
-    pub fn parse(&mut self) -> Result<Expr, Error> {
-        let expr = self.expression()?;
-        Ok(expr)
+    pub fn parse(&mut self) -> Result<Vec<Stmt>, Error> {
+        let mut statements = Vec::new();
+        while !self.is_at_end() {
+            statements.push(self.statement()?);
+        }
+        Ok(statements)
     }
 }

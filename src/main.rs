@@ -5,10 +5,11 @@ use std::io::{self, BufRead, Write};
 use crate::interpreter::interpret;
 mod ast_printer;
 mod expr;
+mod interpreter;
 mod parser;
 pub mod scanner;
+mod stmt;
 mod test_ast_printer;
-mod interpreter;
 
 fn main() {
     env::set_var("RUST_BACKTRACE", "1");
@@ -62,9 +63,9 @@ fn run(idx: usize, source: Vec<u8>, repl: bool) {
         current: 0,
     };
     match parser.parse() {
-        Ok(expr) => {
+        Ok(stmt) => {
             //println!("{:?}", expr.print());
-            interpret(expr, repl);
+            interpret(stmt, repl);
         }
         Err(e) => println!("{:?}", e),
     };
