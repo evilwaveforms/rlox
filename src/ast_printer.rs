@@ -18,6 +18,7 @@ impl Expr {
                 }
             },
             Expr::Unary(expr) => parenthesize(&expr.operator.lexeme, &[&expr.right]),
+            Expr::Variable(_) => todo!(),
         }
     }
 }

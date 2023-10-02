@@ -1,9 +1,13 @@
+use std::collections::HashMap;
 use std::env;
 use std::fs::File;
 use std::io::{self, BufRead, Write};
 
-use crate::interpreter::interpret;
+use environment::Environment;
+use interpreter::Data;
+
 mod ast_printer;
+mod environment;
 mod expr;
 mod interpreter;
 mod parser;
@@ -14,25 +18,33 @@ mod test_ast_printer;
 fn main() {
     env::set_var("RUST_BACKTRACE", "1");
     let args: Vec<String> = env::args().collect();
+
+    let values: HashMap<String, Data> = HashMap::new();
+    let env = Environment { values };
+    let mut interpreter = interpreter::Interpreter {
+        env: env.clone(),
+        repl: false,
+    };
+
     if args.len() > 2 {
         print!("Usage: rlox [script]");
     } else if args.len() == 2 {
-        run_file(&args[1]);
+        run_file(&args[1], &mut interpreter);
     } else {
-        run_prompt();
+        run_prompt(&mut interpreter);
     }
     dbg!(args);
 }
 
-fn run_file(path: &String) {
+fn run_file(path: &String, interpreter: &mut interpreter::Interpreter) {
     let file = File::open(&path).expect("Unable to open file");
     let lines = io::BufReader::new(&file).lines();
     for (i, line) in lines.enumerate() {
-        run(i + 1, line.unwrap().into_bytes(), false);
+        run(i + 1, line.unwrap().into_bytes(), false, interpreter);
     }
 }
 
-fn run_prompt() {
+fn run_prompt(interpreter: &mut interpreter::Interpreter) {
     loop {
         let mut line = String::new();
         print!(">");
@@ -44,11 +56,11 @@ fn run_prompt() {
         if line.is_empty() {
             break;
         }
-        run(0, line.into_bytes(), true);
+        run(0, line.into_bytes(), true, interpreter);
     }
 }
 
-fn run(idx: usize, source: Vec<u8>, repl: bool) {
+fn run(idx: usize, source: Vec<u8>, repl: bool, interpreter: &mut interpreter::Interpreter) {
     let v: Vec<scanner::Token> = vec![];
     let mut scanner = scanner::Scanner {
         source,
@@ -62,10 +74,10 @@ fn run(idx: usize, source: Vec<u8>, repl: bool) {
         tokens: scanner.list,
         current: 0,
     };
+
     match parser.parse() {
         Ok(stmt) => {
-            //println!("{:?}", expr.print());
-            interpret(stmt, repl);
+            interpreter.interpret(stmt);
         }
         Err(e) => println!("{:?}", e),
     };

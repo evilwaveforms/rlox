@@ -2,6 +2,7 @@ use crate::expr::Binary;
 use crate::expr::Expr;
 use crate::expr::Grouping;
 use crate::expr::Unary;
+use crate::expr::Variable;
 use crate::scanner;
 use crate::scanner::Literal;
 use crate::scanner::Token;
@@ -9,6 +10,7 @@ use crate::scanner::TokenType;
 use crate::stmt::Expression;
 use crate::stmt::Print;
 use crate::stmt::Stmt;
+use crate::stmt::Var;
 
 #[derive(Debug)]
 pub struct Parser {
@@ -26,6 +28,14 @@ impl Parser {
         self.equality()
     }
 
+    fn declaration(&mut self) -> Result<Stmt, Error> {
+        if self.matching(&[TokenType::Var]) {
+            return Ok(self.var_declaration())?;
+        }
+        return self.statement();
+        // TODO: check that synchronize works
+    }
+
     fn statement(&mut self) -> Result<Stmt, Error> {
         if self.matching(&[TokenType::Print]) {
             return self.print_statement();
@@ -37,6 +47,26 @@ impl Parser {
         let expr: Expr = self.expression()?;
         self.consume(&TokenType::Semicolon, "Expect ';' after value.")?;
         Ok(Stmt::Print(Print { expression: expr }))
+    }
+
+    fn var_declaration(&mut self) -> Result<Stmt, Error> {
+        let name = self
+            .consume(&TokenType::Identifier, "Expect variable name.")
+            .unwrap();
+
+        let mut initializer: Option<Expr> = None;
+        if self.matching(&[TokenType::Equal]) {
+            match self.expression() {
+                Ok(init) => initializer = Some(init),
+                _ => (),
+            };
+        }
+
+        self.consume(
+            &TokenType::Semicolon,
+            "Expect ';' after variable declaration.",
+        )?;
+        Ok(Stmt::Var(Var { name, initializer }))
     }
 
     fn expression_statement(&mut self) -> Result<Stmt, Error> {
@@ -144,6 +174,11 @@ impl Parser {
         }
         if self.matching(&[TokenType::Number, TokenType::String]) {
             return Ok(Expr::Literal(self.previous().literal.unwrap()));
+        }
+        if self.matching(&[TokenType::Identifier]) {
+            return Ok(Expr::Variable(Box::new(Variable {
+                name: self.previous(),
+            })));
         }
 
         if self.matching(&[TokenType::LeftParen]) {
@@ -255,7 +290,7 @@ impl Parser {
     pub fn parse(&mut self) -> Result<Vec<Stmt>, Error> {
         let mut statements = Vec::new();
         while !self.is_at_end() {
-            statements.push(self.statement()?);
+            statements.push(self.declaration()?);
         }
         Ok(statements)
     }
