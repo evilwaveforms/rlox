@@ -1,6 +1,6 @@
 use crate::{
     environment::Environment,
-    expr::{Binary, Expr, Grouping, Unary, Variable},
+    expr::{Assign, Binary, Expr, Grouping, Unary, Variable},
     scanner::Literal,
     scanner::Token,
     scanner::TokenType,
@@ -87,6 +87,7 @@ impl Interpreter {
             Expr::Literal(lit) => self.evaluate_literal(lit.clone()),
             Expr::Unary(unary) => self.evaluate_unary(&**unary),
             Expr::Variable(expr) => self.evaluate_variable_expr(&**expr),
+            Expr::Assign(expr) => self.evaluate_assign_expr(&**expr),
         }
     }
 
@@ -114,6 +115,12 @@ impl Interpreter {
         }
 
         self.env.define(stmt.name.lexeme.clone(), value);
+    }
+
+    fn evaluate_assign_expr(&mut self, expr: &Assign) -> Result<Data, Error> {
+        let val = self.evaluate(&expr.value)?;
+        self.env.assign(&expr.name, &val);
+        Ok(val)
     }
 
     fn evaluate_binary(&mut self, expr: &Binary) -> Result<Data, Error> {

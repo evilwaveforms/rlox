@@ -19,6 +19,7 @@ impl Expr {
             },
             Expr::Unary(expr) => parenthesize(&expr.operator.lexeme, &[&expr.right]),
             Expr::Variable(var) => var.name.to_string(),
+            Expr::Assign(_expr) => todo!(),
         }
     }
 }

@@ -1,3 +1,4 @@
+use crate::expr::Assign;
 use crate::expr::Binary;
 use crate::expr::Expr;
 use crate::expr::Grouping;
@@ -25,7 +26,7 @@ pub enum Error {
 
 impl Parser {
     fn expression(&mut self) -> Result<Expr, Error> {
-        self.equality()
+        self.assignment()
     }
 
     fn declaration(&mut self) -> Result<Stmt, Error> {
@@ -73,6 +74,23 @@ impl Parser {
         let expr: Expr = self.expression()?;
         self.consume(&TokenType::Semicolon, "Expect ';' after value.")?;
         Ok(Stmt::Expression(Expression { expression: expr }))
+    }
+
+    fn assignment(&mut self) -> Result<Expr, Error> {
+        let expr: Expr = self.equality()?;
+
+        if self.matching(&[TokenType::Equal]) {
+            let equals: Token = self.previous();
+            let val: Expr = self.assignment()?;
+
+            if let Expr::Variable(var) = expr {
+                let name: Token = var.name;
+                return Ok(Expr::Assign(Box::new(Assign { name, value: val })));
+            } else {
+                return Err(self.error(equals, "Invalid Assignment target."));
+            }
+        }
+        return Ok(expr);
     }
 
     fn equality(&mut self) -> Result<Expr, Error> {

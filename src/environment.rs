@@ -30,4 +30,12 @@ impl Environment {
             None => Err(Error::Undefined(name.lexeme.clone())),
         }
     }
+
+    pub fn assign(&mut self, name: &Token, value: &Data) {
+        if self.values.contains_key(&name.lexeme) {
+            self.values.insert(name.lexeme.clone(), value.clone());
+            return;
+        }
+        Error::Undefined(name.lexeme.clone());
+    }
 }
