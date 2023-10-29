@@ -3,6 +3,7 @@ use std::collections::HashMap;
 
 #[derive(Clone, Debug)]
 pub struct Environment {
+    pub enclosing: Option<Box<Environment>>,
     pub values: HashMap<String, Data>,
 }
 
@@ -26,9 +27,17 @@ impl Environment {
 
     pub fn get(&mut self, name: &Token) -> Result<Data, Error> {
         match self.values.get(&name.lexeme) {
-            Some(val) => Ok(val.clone()),
-            None => Err(Error::Undefined(name.lexeme.clone())),
-        }
+            Some(val) => return Ok(val.clone()),
+            _ => (),
+        };
+
+        if self.enclosing.is_some() {
+            return match self.enclosing.as_mut().unwrap().get(&name) {
+                Ok(val) => Ok(val.clone()),
+                Err(_) => Err(Error::Undefined(name.lexeme.clone())),
+            };
+        };
+        Err(Error::Undefined(name.lexeme.clone()))
     }
 
     pub fn assign(&mut self, name: &Token, value: &Data) {
@@ -36,6 +45,11 @@ impl Environment {
             self.values.insert(name.lexeme.clone(), value.clone());
             return;
         }
+
+        if self.enclosing.is_some() {
+            self.enclosing.as_mut().unwrap().assign(&name, &value);
+            return;
+        };
         Error::Undefined(name.lexeme.clone());
     }
 }

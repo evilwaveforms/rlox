@@ -1,10 +1,9 @@
+use environment::Environment;
+use interpreter::Data;
 use std::collections::HashMap;
 use std::env;
 use std::fs::File;
 use std::io::{self, BufRead, Write};
-
-use environment::Environment;
-use interpreter::Data;
 
 mod ast_printer;
 mod environment;
@@ -20,7 +19,10 @@ fn main() {
     let args: Vec<String> = env::args().collect();
 
     let values: HashMap<String, Data> = HashMap::new();
-    let env = Environment { values };
+    let env = Environment {
+        values,
+        enclosing: None,
+    };
     let mut interpreter = interpreter::Interpreter {
         env: env.clone(),
         repl: false,

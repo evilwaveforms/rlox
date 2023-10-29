@@ -4,8 +4,9 @@ use crate::{
     scanner::Literal,
     scanner::Token,
     scanner::TokenType,
-    stmt::{Expression, Print, Stmt, Var},
+    stmt::{Block, Expression, Print, Stmt, Var},
 };
+use std::collections::HashMap;
 use std::fmt;
 
 #[derive(Clone, Debug, PartialEq)]
@@ -96,7 +97,27 @@ impl Interpreter {
             Stmt::Expression(expr) => self.evaluate_expression_stmt(&expr),
             Stmt::Print(expr) => self.evaluate_print_stmt(&expr),
             Stmt::Var(expr) => self.evaluate_var_stmt(&expr),
+            Stmt::Block(stmt) => self.evaluate_block_stmt(&stmt),
         }
+    }
+
+    fn execute_block(&mut self, statements: &Vec<Stmt>, env: Environment) {
+        let prev_env = self.env.clone();
+        self.env = env;
+
+        for statement in statements {
+            self.execute(&statement);
+        }
+        self.env = prev_env;
+    }
+
+    fn evaluate_block_stmt(&mut self, stmt: &Block) {
+        let values: HashMap<String, Data> = HashMap::new();
+        let env = Environment {
+            values,
+            enclosing: None,
+        };
+        self.execute_block(&stmt.statements, env)
     }
 
     fn evaluate_expression_stmt(&mut self, stmt: &Expression) {

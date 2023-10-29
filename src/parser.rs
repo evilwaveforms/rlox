@@ -8,6 +8,7 @@ use crate::scanner;
 use crate::scanner::Literal;
 use crate::scanner::Token;
 use crate::scanner::TokenType;
+use crate::stmt::Block;
 use crate::stmt::Expression;
 use crate::stmt::Print;
 use crate::stmt::Stmt;
@@ -40,6 +41,10 @@ impl Parser {
     fn statement(&mut self) -> Result<Stmt, Error> {
         if self.matching(&[TokenType::Print]) {
             return self.print_statement();
+        }
+        if self.matching(&[TokenType::LeftBrace]) {
+            let statements = self.block()?;
+            return Ok(Stmt::Block(Block { statements }));
         }
         self.expression_statement()
     }
@@ -74,6 +79,17 @@ impl Parser {
         let expr: Expr = self.expression()?;
         self.consume(&TokenType::Semicolon, "Expect ';' after value.")?;
         Ok(Stmt::Expression(Expression { expression: expr }))
+    }
+
+    fn block(&mut self) -> Result<Vec<Stmt>, Error> {
+        let mut statements = Vec::new();
+
+        while !self.check(&TokenType::RightBrace) && !self.is_at_end() {
+            statements.push(self.declaration().unwrap());
+        }
+
+        self.consume(&TokenType::RightBrace, "Expect '}' after block.")?;
+        Ok(statements)
     }
 
     fn assignment(&mut self) -> Result<Expr, Error> {
@@ -240,7 +256,7 @@ impl Parser {
         };
         match self.peek() {
             Ok(token) => &token.ttype == ttype,
-            Err(e) => true,
+            Err(_) => true,
         }
     }
 

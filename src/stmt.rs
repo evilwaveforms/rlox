@@ -2,6 +2,7 @@ use crate::{expr::Expr, scanner::Token};
 
 #[derive(Clone, Debug)]
 pub enum Stmt {
+    Block(Block),
     Expression(Expression),
     Print(Print),
     Var(Var),
@@ -21,4 +22,9 @@ pub struct Print {
 pub struct Var {
     pub name: Token,
     pub initializer: Option<Expr>,
+}
+
+#[derive(Clone, Debug)]
+pub struct Block {
+    pub statements: Vec<Stmt>,
 }
