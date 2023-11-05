@@ -9,6 +9,7 @@ pub enum Expr {
     Unary(Box<Unary>),
     Variable(Box<Variable>),
     Assign(Box<Assign>),
+    Logical(Box<Logical>), 
 }
 
 #[derive(Clone, Debug)]
@@ -38,4 +39,11 @@ pub struct Variable {
 pub struct Assign {
     pub name: Token,
     pub value: Expr,
+}
+
+#[derive(Clone, Debug)]
+pub struct Logical {
+    pub left: Expr,
+    pub operator: Token,
+    pub right: Expr,
 }

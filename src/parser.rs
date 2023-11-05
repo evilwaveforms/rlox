@@ -2,6 +2,7 @@ use crate::expr::Assign;
 use crate::expr::Binary;
 use crate::expr::Expr;
 use crate::expr::Grouping;
+use crate::expr::Logical;
 use crate::expr::Unary;
 use crate::expr::Variable;
 use crate::scanner;
@@ -10,6 +11,7 @@ use crate::scanner::Token;
 use crate::scanner::TokenType;
 use crate::stmt::Block;
 use crate::stmt::Expression;
+use crate::stmt::If;
 use crate::stmt::Print;
 use crate::stmt::Stmt;
 use crate::stmt::Var;
@@ -39,6 +41,9 @@ impl Parser {
     }
 
     fn statement(&mut self) -> Result<Stmt, Error> {
+        if self.matching(&[TokenType::If]) {
+            return self.if_statement();
+        }
         if self.matching(&[TokenType::Print]) {
             return self.print_statement();
         }
@@ -47,6 +52,25 @@ impl Parser {
             return Ok(Stmt::Block(Block { statements }));
         }
         self.expression_statement()
+    }
+
+    fn if_statement(&mut self) -> Result<Stmt, Error> {
+        self.consume(&TokenType::LeftParen, "Expect '(' after 'if'.")?;
+        let condition = self.expression()?;
+        self.consume(&TokenType::RightParen, "Expect ')' after if condition.")?;
+
+        let then_branch = self.statement()?;
+        let mut else_branch = None;
+
+        if self.matching(&[TokenType::Else]) {
+            let stmt = self.statement()?;
+            else_branch = Some(Box::new(stmt));
+        }
+        Ok(Stmt::If(If {
+            condition,
+            then_branch: Box::new(then_branch),
+            else_branch,
+        }))
     }
 
     fn print_statement(&mut self) -> Result<Stmt, Error> {
@@ -92,7 +116,7 @@ impl Parser {
     }
 
     fn assignment(&mut self) -> Result<Expr, Error> {
-        let expr: Expr = self.equality()?;
+        let expr: Expr = self.or()?;
 
         if self.matching(&[TokenType::Equal]) {
             let equals: Token = self.previous();
@@ -106,6 +130,36 @@ impl Parser {
             }
         }
         return Ok(expr);
+    }
+
+    fn or(&mut self) -> Result<Expr, Error> {
+        let mut expr = self.and()?;
+
+        while self.matching(&[TokenType::Or]) {
+            let operator = self.previous();
+            let right = self.and()?;
+            expr = Expr::Logical(Box::new(Logical {
+                left: expr,
+                operator,
+                right,
+            }));
+        }
+        Ok(expr)
+    }
+
+    fn and(&mut self) -> Result<Expr, Error> {
+        let mut expr = self.equality()?;
+
+        while self.matching(&[TokenType::And]) {
+            let operator = self.previous();
+            let right = self.equality()?;
+            expr = Expr::Logical(Box::new(Logical {
+                left: expr,
+                operator,
+                right,
+            }));
+        }
+        Ok(expr)
     }
 
     fn equality(&mut self) -> Result<Expr, Error> {

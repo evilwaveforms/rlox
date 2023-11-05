@@ -6,6 +6,7 @@ pub enum Stmt {
     Expression(Expression),
     Print(Print),
     Var(Var),
+    If(If),
 }
 
 #[derive(Clone, Debug)]
@@ -27,4 +28,11 @@ pub struct Var {
 #[derive(Clone, Debug)]
 pub struct Block {
     pub statements: Vec<Stmt>,
+}
+
+#[derive(Clone, Debug)]
+pub struct If {
+    pub condition: Expr,
+    pub then_branch: Box<Stmt>,
+    pub else_branch: Option<Box<Stmt>>,
 }

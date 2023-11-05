@@ -1,10 +1,10 @@
 use crate::{
     environment::Environment,
-    expr::{Assign, Binary, Expr, Grouping, Unary, Variable},
+    expr::{Assign, Binary, Expr, Grouping, Logical, Unary, Variable},
     scanner::Literal,
     scanner::Token,
     scanner::TokenType,
-    stmt::{Block, Expression, Print, Stmt, Var},
+    stmt::{Block, Expression, If, Print, Stmt, Var},
 };
 use std::collections::HashMap;
 use std::fmt;
@@ -89,6 +89,7 @@ impl Interpreter {
             Expr::Unary(unary) => self.evaluate_unary(&**unary),
             Expr::Variable(expr) => self.evaluate_variable_expr(&**expr),
             Expr::Assign(expr) => self.evaluate_assign_expr(&**expr),
+            Expr::Logical(expr) => self.evaluate_logical_expr(&**expr),
         }
     }
 
@@ -98,6 +99,7 @@ impl Interpreter {
             Stmt::Print(expr) => self.evaluate_print_stmt(&expr),
             Stmt::Var(expr) => self.evaluate_var_stmt(&expr),
             Stmt::Block(stmt) => self.evaluate_block_stmt(&stmt),
+            Stmt::If(stmt) => self.evaluate_if_stmt(&stmt),
         }
     }
 
@@ -122,6 +124,14 @@ impl Interpreter {
 
     fn evaluate_expression_stmt(&mut self, stmt: &Expression) {
         self.evaluate(&stmt.expression);
+    }
+
+    fn evaluate_if_stmt(&mut self, stmt: &If) {
+        if is_truthy(self.evaluate(&stmt.condition).unwrap()) {
+            self.execute(&stmt.then_branch);
+        } else if stmt.else_branch.is_some() {
+            self.execute(&stmt.else_branch.clone().unwrap());
+        }
     }
 
     fn evaluate_print_stmt(&mut self, stmt: &Print) {
@@ -226,6 +236,21 @@ impl Interpreter {
             Literal::Number(num) => Ok(Data::Number(num)),
             _ => Err(Error::ValueError),
         }
+    }
+
+    fn evaluate_logical_expr(&mut self, expr: &Logical) -> Result<Data, Error> {
+        let left = self.evaluate(&expr.left)?;
+
+        if expr.operator.ttype == TokenType::Or {
+            if is_truthy(left.clone()) {
+                return Ok(left);
+            } else {
+                if !is_truthy(left.clone()) {
+                    return Ok(left);
+                }
+            }
+        }
+        Ok(self.evaluate(&expr.right))?
     }
 
     fn evaluate_grouping(&mut self, grouping: &Grouping) -> Result<Data, Error> {
