@@ -2,8 +2,7 @@ use environment::Environment;
 use interpreter::Data;
 use std::collections::HashMap;
 use std::env;
-use std::fs::File;
-use std::io::{self, BufRead, Write};
+use std::io::Write;
 
 mod ast_printer;
 mod environment;
@@ -39,11 +38,27 @@ fn main() {
 }
 
 fn run_file(path: &String, interpreter: &mut interpreter::Interpreter) {
-    let file = File::open(&path).expect("Unable to open file");
-    let lines = io::BufReader::new(&file).lines();
-    for (i, line) in lines.enumerate() {
-        run(i + 1, line.unwrap().into_bytes(), false, interpreter);
-    }
+    let source = std::fs::read(&path).expect("Unable to open file");
+    let v: Vec<scanner::Token> = vec![];
+    let mut scanner = scanner::Scanner {
+        source,
+        list: v,
+        current: 0,
+        start: 0,
+        line: 0,
+    };
+    scanner.scan_tokens();
+    let mut parser = parser::Parser {
+        tokens: scanner.list,
+        current: 0,
+    };
+
+    match parser.parse() {
+        Ok(stmt) => {
+            interpreter.interpret(stmt);
+        }
+        Err(e) => println!("{:?}", e),
+    };
 }
 
 fn run_prompt(interpreter: &mut interpreter::Interpreter) {

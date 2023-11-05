@@ -43,7 +43,7 @@ impl Parser {
             return self.print_statement();
         }
         if self.matching(&[TokenType::LeftBrace]) {
-            let statements = self.block()?;
+            let statements = self.block();
             return Ok(Stmt::Block(Block { statements }));
         }
         self.expression_statement()
@@ -81,15 +81,14 @@ impl Parser {
         Ok(Stmt::Expression(Expression { expression: expr }))
     }
 
-    fn block(&mut self) -> Result<Vec<Stmt>, Error> {
+    fn block(&mut self) -> Vec<Stmt> {
         let mut statements = Vec::new();
 
         while !self.check(&TokenType::RightBrace) && !self.is_at_end() {
             statements.push(self.declaration().unwrap());
         }
-
-        self.consume(&TokenType::RightBrace, "Expect '}' after block.")?;
-        Ok(statements)
+        self.consume(&TokenType::RightBrace, "Expect '}' after block.");
+        statements
     }
 
     fn assignment(&mut self) -> Result<Expr, Error> {
