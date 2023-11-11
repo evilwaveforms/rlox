@@ -23,7 +23,7 @@ fn main() {
         enclosing: None,
     };
     let mut interpreter = interpreter::Interpreter {
-        env: env.clone(),
+        env,
         repl: false,
     };
 

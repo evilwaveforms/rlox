@@ -104,7 +104,11 @@ impl Interpreter {
     }
 
     fn execute_block(&mut self, statements: &Vec<Stmt>, env: Environment) {
-        let prev_env = self.env.clone();
+        let values: HashMap<String, Data> = HashMap::new();
+        let prev_env = Environment {
+            values,
+            enclosing: Some(Box::new(env.clone())),
+        };
         self.env = env;
 
         for statement in statements {
@@ -117,7 +121,7 @@ impl Interpreter {
         let values: HashMap<String, Data> = HashMap::new();
         let env = Environment {
             values,
-            enclosing: None,
+            enclosing: Some(Box::new(self.env.clone())),
         };
         self.execute_block(&stmt.statements, env)
     }
