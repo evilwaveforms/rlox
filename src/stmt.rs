@@ -7,6 +7,7 @@ pub enum Stmt {
     Print(Print),
     Var(Var),
     If(If),
+    While(Box<While>),
 }
 
 #[derive(Clone, Debug)]
@@ -35,4 +36,10 @@ pub struct If {
     pub condition: Expr,
     pub then_branch: Box<Stmt>,
     pub else_branch: Option<Box<Stmt>>,
+}
+
+#[derive(Clone, Debug)]
+pub struct While {
+    pub condition: Expr,
+    pub body: Stmt,
 }

@@ -100,6 +100,7 @@ impl Interpreter {
             Stmt::Var(expr) => self.evaluate_var_stmt(&expr),
             Stmt::Block(stmt) => self.evaluate_block_stmt(&stmt),
             Stmt::If(stmt) => self.evaluate_if_stmt(&stmt),
+            Stmt::While(stmt) => self.evaluate_while_stmt(&**stmt),
         }
     }
 
@@ -145,8 +146,16 @@ impl Interpreter {
             value = self.evaluate(&stmt.initializer.clone().unwrap()).unwrap();
         }
 
-        self.env.borrow_mut().define(stmt.name.lexeme.clone(), value);
+        self.env
+            .borrow_mut()
+            .define(stmt.name.lexeme.clone(), value);
     }
+
+    fn evaluate_while_stmt(&mut self, stmt: &While) {
+        while is_truthy(self.evaluate(&stmt.condition).unwrap()) {
+            self.execute(&stmt.body);
+        }
+        return;
     }
 
     fn evaluate_assign_expr(&mut self, expr: &Assign) -> Result<Data, Error> {
@@ -277,12 +286,8 @@ impl Interpreter {
 
     fn evaluate_variable_expr(&mut self, expr: &Variable) -> Result<Data, Error> {
         match self.env.borrow_mut().get(&expr.name) {
-            Ok(var) => {
-                Ok(var)
-            }
-            Err(_) => {
-                Err(Error::ValueError)
-            }
+            Ok(var) => Ok(var),
+            Err(_) => Err(Error::ValueError),
         }
     }
 }
