@@ -1,8 +1,9 @@
 use environment::Environment;
-use interpreter::Data;
+use std::cell::RefCell;
 use std::collections::HashMap;
 use std::env;
 use std::io::Write;
+use std::rc::Rc;
 
 mod ast_printer;
 mod environment;
@@ -17,15 +18,11 @@ fn main() {
     env::set_var("RUST_BACKTRACE", "1");
     let args: Vec<String> = env::args().collect();
 
-    let values: HashMap<String, Data> = HashMap::new();
-    let env = Environment {
-        values,
+    let env = Rc::new(RefCell::new(Environment {
+        values: HashMap::new(),
         enclosing: None,
-    };
-    let mut interpreter = interpreter::Interpreter {
-        env,
-        repl: false,
-    };
+    }));
+    let mut interpreter = interpreter::Interpreter { env, repl: false };
 
     if args.len() > 2 {
         print!("Usage: rlox [script]");

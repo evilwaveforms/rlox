@@ -1,9 +1,9 @@
 use crate::{interpreter::Data, scanner::Token};
-use std::collections::HashMap;
+use std::{cell::RefCell, collections::HashMap, rc::Rc};
 
 #[derive(Clone, Debug)]
 pub struct Environment {
-    pub enclosing: Option<Box<Environment>>,
+    pub enclosing: Option<Rc<RefCell<Environment>>>,
     pub values: HashMap<String, Data>,
 }
 
@@ -32,7 +32,7 @@ impl Environment {
         };
 
         if self.enclosing.is_some() {
-            return match self.enclosing.as_mut().unwrap().get(&name) {
+            return match self.enclosing.as_mut().unwrap().borrow_mut().get(&name) {
                 Ok(val) => Ok(val.clone()),
                 Err(_) => Err(Error::Undefined(name.lexeme.clone())),
             };
@@ -47,7 +47,11 @@ impl Environment {
         }
 
         if self.enclosing.is_some() {
-            self.enclosing.as_mut().unwrap().assign(&name, &value);
+            self.enclosing
+                .as_mut()
+                .unwrap()
+                .borrow_mut()
+                .assign(&name, &value);
             return;
         };
         Error::Undefined(name.lexeme.clone());

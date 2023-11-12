@@ -4,10 +4,10 @@ use crate::{
     scanner::Literal,
     scanner::Token,
     scanner::TokenType,
-    stmt::{Block, Expression, If, Print, Stmt, Var},
+    stmt::{Block, Expression, If, Print, Stmt, Var, While},
 };
-use std::collections::HashMap;
 use std::fmt;
+use std::{cell::RefCell, collections::HashMap, rc::Rc};
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum Data {
@@ -30,7 +30,7 @@ impl fmt::Display for Data {
 
 #[derive(Debug, Clone)]
 pub struct Interpreter {
-    pub env: Environment,
+    pub env: Rc<RefCell<Environment>>,
     pub repl: bool,
 }
 
@@ -103,13 +103,14 @@ impl Interpreter {
         }
     }
 
-    fn execute_block(&mut self, statements: &Vec<Stmt>, env: Environment) {
-        let values: HashMap<String, Data> = HashMap::new();
-        let prev_env = Environment {
-            values,
-            enclosing: Some(Box::new(env.clone())),
-        };
-        self.env = env;
+    fn execute_block(&mut self, statements: &Vec<Stmt>) {
+        let curr_env = Rc::new(RefCell::new(Environment {
+            values: HashMap::new(),
+            enclosing: Some(self.env.clone()),
+        }));
+
+        let prev_env = self.env.clone();
+        self.env = curr_env;
 
         for statement in statements {
             self.execute(&statement);
@@ -118,16 +119,11 @@ impl Interpreter {
     }
 
     fn evaluate_block_stmt(&mut self, stmt: &Block) {
-        let values: HashMap<String, Data> = HashMap::new();
-        let env = Environment {
-            values,
-            enclosing: Some(Box::new(self.env.clone())),
-        };
-        self.execute_block(&stmt.statements, env)
+        self.execute_block(&stmt.statements)
     }
 
     fn evaluate_expression_stmt(&mut self, stmt: &Expression) {
-        self.evaluate(&stmt.expression);
+        self.evaluate(&stmt.expression).unwrap();
     }
 
     fn evaluate_if_stmt(&mut self, stmt: &If) {
@@ -149,12 +145,13 @@ impl Interpreter {
             value = self.evaluate(&stmt.initializer.clone().unwrap()).unwrap();
         }
 
-        self.env.define(stmt.name.lexeme.clone(), value);
+        self.env.borrow_mut().define(stmt.name.lexeme.clone(), value);
+    }
     }
 
     fn evaluate_assign_expr(&mut self, expr: &Assign) -> Result<Data, Error> {
         let val = self.evaluate(&expr.value)?;
-        self.env.assign(&expr.name, &val);
+        self.env.borrow_mut().assign(&expr.name, &val);
         Ok(val)
     }
 
@@ -279,9 +276,13 @@ impl Interpreter {
     }
 
     fn evaluate_variable_expr(&mut self, expr: &Variable) -> Result<Data, Error> {
-        match self.env.get(&expr.name) {
-            Ok(var) => Ok(var),
-            Err(_) => Err(Error::ValueError),
+        match self.env.borrow_mut().get(&expr.name) {
+            Ok(var) => {
+                Ok(var)
+            }
+            Err(_) => {
+                Err(Error::ValueError)
+            }
         }
     }
 }
