@@ -8,6 +8,7 @@ pub enum Stmt {
     Var(Var),
     If(If),
     While(Box<While>),
+    Function(Box<Function>),
 }
 
 #[derive(Clone, Debug)]
@@ -42,4 +43,11 @@ pub struct If {
 pub struct While {
     pub condition: Expr,
     pub body: Stmt,
+}
+
+#[derive(Clone, Debug)]
+pub struct Function {
+    pub name: Token,
+    pub parameters: Vec<Token>,
+    pub body: Vec<Stmt>,
 }

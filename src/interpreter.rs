@@ -1,19 +1,23 @@
 use crate::{
     environment::Environment,
-    expr::{Assign, Binary, Expr, Grouping, Logical, Unary, Variable},
+    expr::{Assign, Binary, Call, Expr, Grouping, Logical, Unary, Variable},
     scanner::Literal,
     scanner::Token,
     scanner::TokenType,
     stmt::{Block, Expression, If, Print, Stmt, Var, While},
 };
-use std::fmt;
 use std::{cell::RefCell, collections::HashMap, rc::Rc};
+use std::{
+    fmt,
+    time::{SystemTime, UNIX_EPOCH},
+};
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum Data {
     Number(f64),
     Str(String),
     Bool(bool),
+    Func,
     Nil,
 }
 
@@ -24,7 +28,19 @@ impl fmt::Display for Data {
             Data::Str(str) => write!(f, "{}", str),
             Data::Bool(bool) => write!(f, "{}", bool),
             Data::Nil => write!(f, "nil"),
+            Data::Func => write!(f, "func"),
         }
+    }
+}
+
+impl LoxCallable for Data {}
+
+trait LoxCallable {
+    fn arity() {
+        todo!();
+    }
+    fn call(&self, interpreter: &Interpreter, arguments: Vec<Data>) {
+        todo!();
     }
 }
 
@@ -66,6 +82,11 @@ impl std::fmt::Display for Error {
 }
 
 impl Interpreter {
+    pub fn call(&mut self, arguments: Vec<Stmt>) {
+        let start = SystemTime::now();
+        let since_the_epoch = start.duration_since(UNIX_EPOCH).unwrap().as_secs_f32();
+    }
+
     pub fn interpret(&mut self, statements: Vec<Stmt>) {
         for stmt in statements {
             self.execute(&stmt)
@@ -90,6 +111,7 @@ impl Interpreter {
             Expr::Variable(expr) => self.evaluate_variable_expr(&**expr),
             Expr::Assign(expr) => self.evaluate_assign_expr(&**expr),
             Expr::Logical(expr) => self.evaluate_logical_expr(&**expr),
+            Expr::Call(epxr) => todo!(),
         }
     }
 
@@ -101,6 +123,7 @@ impl Interpreter {
             Stmt::Block(stmt) => self.evaluate_block_stmt(&stmt),
             Stmt::If(stmt) => self.evaluate_if_stmt(&stmt),
             Stmt::While(stmt) => self.evaluate_while_stmt(&**stmt),
+            Stmt::Function(stmt) => todo!(),
         }
     }
 
@@ -238,6 +261,18 @@ impl Interpreter {
             TokenType::EqualEqual => Ok(Data::Bool(is_equal(left, right))),
             _ => Err(Error::ValueError),
         }
+    }
+
+    fn evaluate_call_expr(&mut self, expr: &Call) -> Result<Data, Error> {
+        let callee = self.evaluate(&expr.callee)?;
+        let mut arguments: Vec<Data> = Vec::new();
+
+        for argument in &expr.arguments {
+            arguments.push(self.evaluate(argument)?);
+        }
+        // TODO: Prevent calling with strings.
+        callee.call(self, arguments);
+        todo!();
     }
 
     fn evaluate_literal(&mut self, literal: Literal) -> Result<Data, Error> {

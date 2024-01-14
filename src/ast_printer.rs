@@ -21,6 +21,7 @@ impl Expr {
             Expr::Variable(var) => var.name.to_string(),
             Expr::Assign(_expr) => todo!(),
             Expr::Logical(_) => todo!(),
+            Expr::Call(_) => todo!(),
         }
     }
 }

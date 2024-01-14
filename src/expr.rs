@@ -10,6 +10,7 @@ pub enum Expr {
     Variable(Box<Variable>),
     Assign(Box<Assign>),
     Logical(Box<Logical>), 
+    Call(Box<Call>),
 }
 
 #[derive(Clone, Debug)]
@@ -46,4 +47,11 @@ pub struct Logical {
     pub left: Expr,
     pub operator: Token,
     pub right: Expr,
+}
+
+#[derive(Clone, Debug)]
+pub struct Call {
+    pub callee: Expr,
+    pub paren: Token,
+    pub arguments: Vec<Expr>,
 }
