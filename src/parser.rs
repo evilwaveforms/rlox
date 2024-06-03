@@ -42,7 +42,7 @@ impl Parser {
         if self.matching(&[TokenType::Var]) {
             return Ok(self.var_declaration())?;
         }
-        return self.statement();
+        return Ok(self.statement())?;
         // TODO: check that synchronize works
     }
 
@@ -182,6 +182,7 @@ impl Parser {
 
     fn function(&mut self, kind: String) -> Result<Stmt, Error> {
         let name = self.consume(&TokenType::Identifier, &("Expect ".to_string() + &kind + " name."))?;
+        self.consume(&TokenType::LeftParen, &("Expect '(' after ".to_string() + &kind + " name."))?;
         let mut parameters: Vec<Token> = Vec::new();
         if !self.check(&TokenType::RightParen) {
             loop {
@@ -189,7 +190,7 @@ impl Parser {
                     self.error(self.peek()?, "Can't have more than 255 parameters.");
                 }
                 parameters.push(self.consume(&TokenType::Identifier, "Expect parameter name.")?);
-                if self.matching(&[TokenType::Comma]) {
+                if !self.matching(&[TokenType::Comma]) {
                     break;
                 }
             }
