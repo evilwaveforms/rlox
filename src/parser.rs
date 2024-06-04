@@ -347,7 +347,6 @@ impl Parser {
 
     fn finish_call(&mut self, callee: Expr) -> Result<Expr, Error> {
         let mut arguments: Vec<Expr> = Vec::new();
-
         if !self.check(&TokenType::RightParen) {
             loop {
                 if arguments.len() >= 255 {
@@ -355,7 +354,7 @@ impl Parser {
                 }
 
                 arguments.push(self.expression()?);
-                if self.matching(&[TokenType::Comma]) {
+                if !self.matching(&[TokenType::Comma]) {
                     break;
                 }
             }
