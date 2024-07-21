@@ -84,7 +84,7 @@ impl std::fmt::Display for Error {
 impl Interpreter {
     pub fn call(&mut self, arguments: Vec<Stmt>) {
         let start = SystemTime::now();
-        let since_the_epoch = start.duration_since(UNIX_EPOCH).unwrap().as_secs_f32();
+        let _since_the_epoch = start.duration_since(UNIX_EPOCH).unwrap().as_secs_f32();
     }
 
     pub fn interpret(&mut self, statements: Vec<Stmt>) {

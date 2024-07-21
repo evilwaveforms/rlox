@@ -1,18 +1,9 @@
-use environment::Environment;
+use rlox::{Environment, Interpreter, Parser, Scanner, Token};
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::env;
 use std::io::Write;
 use std::rc::Rc;
-
-mod ast_printer;
-mod environment;
-mod expr;
-mod interpreter;
-mod parser;
-pub mod scanner;
-mod stmt;
-mod test_ast_printer;
 
 fn main() {
     env::set_var("RUST_BACKTRACE", "1");
@@ -22,7 +13,7 @@ fn main() {
         values: HashMap::new(),
         enclosing: None,
     }));
-    let mut interpreter = interpreter::Interpreter { env, repl: false };
+    let mut interpreter = Interpreter { env, repl: false };
 
     if args.len() > 2 {
         print!("Usage: rlox [script]");
@@ -34,10 +25,10 @@ fn main() {
     dbg!(args);
 }
 
-fn run_file(path: &String, interpreter: &mut interpreter::Interpreter) {
+fn run_file(path: &String, interpreter: &mut Interpreter) {
     let source = std::fs::read(&path).expect("Unable to open file");
-    let v: Vec<scanner::Token> = vec![];
-    let mut scanner = scanner::Scanner {
+    let v: Vec<Token> = vec![];
+    let mut scanner = Scanner {
         source,
         list: v,
         current: 0,
@@ -45,7 +36,7 @@ fn run_file(path: &String, interpreter: &mut interpreter::Interpreter) {
         line: 0,
     };
     scanner.scan_tokens();
-    let mut parser = parser::Parser {
+    let mut parser = Parser {
         tokens: scanner.list,
         current: 0,
     };
@@ -58,7 +49,7 @@ fn run_file(path: &String, interpreter: &mut interpreter::Interpreter) {
     };
 }
 
-fn run_prompt(interpreter: &mut interpreter::Interpreter) {
+fn run_prompt(interpreter: &mut Interpreter) {
     loop {
         let mut line = String::new();
         print!(">");
@@ -74,9 +65,9 @@ fn run_prompt(interpreter: &mut interpreter::Interpreter) {
     }
 }
 
-fn run(idx: usize, source: Vec<u8>, repl: bool, interpreter: &mut interpreter::Interpreter) {
-    let v: Vec<scanner::Token> = vec![];
-    let mut scanner = scanner::Scanner {
+fn run(idx: usize, source: Vec<u8>, repl: bool, interpreter: &mut Interpreter) {
+    let v: Vec<Token> = vec![];
+    let mut scanner = Scanner {
         source,
         list: v,
         current: 0,
@@ -84,7 +75,7 @@ fn run(idx: usize, source: Vec<u8>, repl: bool, interpreter: &mut interpreter::I
         line: idx,
     };
     scanner.scan_tokens();
-    let mut parser = parser::Parser {
+    let mut parser = Parser {
         tokens: scanner.list,
         current: 0,
     };
