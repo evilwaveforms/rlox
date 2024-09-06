@@ -2,7 +2,7 @@ use std::fmt;
 use std::str;
 
 #[rustfmt::skip]
-#[derive(Debug, PartialEq, Copy, Clone, strum_macros::Display)]
+#[derive(Debug, PartialEq, Copy, Clone)]
 pub enum TokenType {
     LeftParen, RightParen, LeftBrace, RightBrace,
     Comma, Dot, Minus, Plus, Semicolon, Slash, Star,
@@ -41,6 +41,52 @@ pub struct Scanner {
     pub current: usize,
     pub start: usize,
     pub line: usize,
+}
+
+impl fmt::Display for TokenType {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            TokenType::LeftParen => write!(f, "{}", self),
+            TokenType::RightParen => write!(f, "{}", self),
+            TokenType::LeftBrace => write!(f, "{}", self),
+            TokenType::RightBrace => write!(f, "{}", self),
+            TokenType::Comma => write!(f, "{}", self),
+            TokenType::Dot => write!(f, "{}", self),
+            TokenType::Minus => write!(f, "{}", self),
+            TokenType::Plus => write!(f, "{}", self),
+            TokenType::Semicolon => write!(f, "{}", self),
+            TokenType::Slash => write!(f, "{}", self),
+            TokenType::Star => write!(f, "{}", self),
+            TokenType::Bang => write!(f, "{}", self),
+            TokenType::BangEqual => write!(f, "{}", self),
+            TokenType::Equal => write!(f, "{}", self),
+            TokenType::EqualEqual => write!(f, "{}", self),
+            TokenType::Greater => write!(f, "{}", self),
+            TokenType::GreaterEqual => write!(f, "{}", self),
+            TokenType::Less => write!(f, "{}", self),
+            TokenType::LessEqual => write!(f, "{}", self),
+            TokenType::Identifier => write!(f, "{}", self),
+            TokenType::String => write!(f, "{}", self),
+            TokenType::Number => write!(f, "{}", self),
+            TokenType::And => write!(f, "{}", self),
+            TokenType::Class => write!(f, "{}", self),
+            TokenType::Else => write!(f, "{}", self),
+            TokenType::False => write!(f, "{}", self),
+            TokenType::Fun => write!(f, "{}", self),
+            TokenType::For => write!(f, "{}", self),
+            TokenType::If => write!(f, "{}", self),
+            TokenType::Nil => write!(f, "{}", self),
+            TokenType::Or => write!(f, "{}", self),
+            TokenType::Print => write!(f, "{}", self),
+            TokenType::Return => write!(f, "{}", self),
+            TokenType::Super => write!(f, "{}", self),
+            TokenType::This => write!(f, "{}", self),
+            TokenType::True => write!(f, "{}", self),
+            TokenType::Var => write!(f, "{}", self),
+            TokenType::While => write!(f, "{}", self),
+            TokenType::Eof => write!(f, "{}", self),
+        }
+    }
 }
 
 impl fmt::Display for Literal {
